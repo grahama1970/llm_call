@@ -1,0 +1,44 @@
+{
+  "model": "gpt-4",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a JSON expert. Always respond with valid JSON."
+    },
+    {
+      "role": "user",
+      "content": "List 3 programming languages with their main use cases."
+    }
+  ],
+  "temperature": 0.3,
+  "max_tokens": 500,
+  "response_format": {
+    "type": "json_object"
+  },
+  "validation": [
+    {
+      "type": "json_string",
+      "params": {
+        "strict": true
+      }
+    },
+    {
+      "type": "response_not_empty",
+      "params": {}
+    }
+  ],
+  "retry_config": {
+    "max_attempts": 3,
+    "initial_delay": 1.0,
+    "max_delay": 10.0,
+    "exponential_base": 2.0,
+    "jitter": true
+  },
+  "stream": false,
+  "presence_penalty": 0.0,
+  "frequency_penalty": 0.0,
+  "top_p": 1.0,
+  "stop": null,
+  "logit_bias": {},
+  "user": "example-user-123"
+}
