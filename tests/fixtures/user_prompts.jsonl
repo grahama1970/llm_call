@@ -1,0 +1,441 @@
+[
+    // --- Group 1: Basic Text Calls (Claude Proxy - max/) ---
+    {
+      "test_case_id": "max_text_001_simple_question_string",
+      "description": "Simplest call to Claude proxy with just a question string, expect default validation.",
+      "llm_config": {
+        "model": "max/text-generation",
+        "question": "Hello Claude, how are you today?"
+      }
+    },
+    {
+      "test_case_id": "max_text_002_user_message_only",
+      "description": "Call to Claude proxy with user message object, expect default validation.",
+      "llm_config": {
+        "model": "max/text-generation",
+        "messages": [{"role": "user", "content": "Tell me a short joke."}],
+        "temperature": 0.7,
+        "max_tokens": 100
+      }
+    },
+    {
+      "test_case_id": "max_text_003_with_system_prompt",
+      "description": "Call to Claude proxy with system and user messages, expect default validation.",
+      "llm_config": {
+        "model": "max/text-generation-creative",
+        "messages": [
+          {"role": "system", "content": "You are a pirate poet."},
+          {"role": "user", "content": "Write a 2-line poem about the sea."}
+        ],
+        "max_tokens": 150
+      }
+    },
+    {
+      "test_case_id": "max_text_004_no_validation_explicit",
+      "description": "Call to Claude proxy, explicitly disabling default validation.",
+      "llm_config": {
+        "model": "max/text-generation",
+        "question": "What is 2+2?",
+        "default_validate": false 
+      }
+    },
+    {
+      "test_case_id": "max_text_005_custom_retry",
+      "description": "Call to Claude proxy with custom retry config.",
+      "llm_config": {
+        "model": "max/text-generation",
+        "messages": [{"role": "user", "content": "Explain quantum entanglement simply."}],
+        "retry_config": {"max_attempts": 2, "initial_delay": 0.5, "debug_mode": true},
+        "validation": [{"type": "response_not_empty"}]
+      }
+    },
+  
+    // --- Group 2: Basic Text Calls (LiteLLM - e.g., Vertex AI) ---
+    {
+      "test_case_id": "vertex_text_001_simple_question_string",
+      "description": "Simplest call to Vertex AI with just a question string.",
+      "llm_config": {
+        "model": "vertex_ai/gemini-1.5-flash-001",
+        "question": "What is the main component of Earth's atmosphere?"
+      }
+    },
+    {
+      "test_case_id": "vertex_text_002_user_message_only",
+      "description": "Call to Vertex AI with user message object.",
+      "llm_config": {
+        "model": "vertex_ai/gemini-1.5-flash-001",
+        "messages": [{"role": "user", "content": "Summarize 'The Great Gatsby' in one sentence."}],
+        "temperature": 0.5,
+        "max_tokens": 150
+      }
+    },
+    {
+      "test_case_id": "vertex_text_003_with_system_prompt",
+      "description": "Call to Vertex AI with system and user messages.",
+      "llm_config": {
+        "model": "vertex_ai/gemini-1.5-flash-001",
+        "messages": [
+          {"role": "system", "content": "You are a historian specializing in ancient Rome."},
+          {"role": "user", "content": "Briefly, what was the Pax Romana?"}
+        ],
+        "max_tokens": 200
+      }
+    },
+  
+    // --- Group 3: JSON Response Requests ---
+    {
+      "test_case_id": "openai_json_001_basic_json_request",
+      "description": "Request JSON from OpenAI, with basic JSON validation.",
+      "llm_config": {
+        "model": "openai/gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": "Provide user details for Alice, age 25, city London, as a JSON object."}],
+        "response_format": {"type": "json_object"},
+        "validation": [
+          {"type": "response_not_empty"},
+          {"type": "json_string"},
+          {"type": "field_present", "params": {"field_name": "name"}},
+          {"type": "field_present", "params": {"field_name": "age"}}
+        ]
+      }
+    },
+    {
+      "test_case_id": "max_json_002_proxy_json_request",
+      "description": "Request JSON from Claude proxy, with JSON validation.",
+      "llm_config": {
+        "model": "max/json_formatter_agent",
+        "messages": [
+          {"role": "system", "content": "You always output valid JSON. Follow instructions precisely."},
+          {"role": "user", "content": "Give me a JSON object with a 'status' field set to 'success' and a 'data' array with numbers 1, 2, 3."}
+        ],
+        "response_format": {"type": "json_object"}, 
+        "validation": [
+          {"type": "response_not_empty"},
+          {"type": "json_string"},
+          {"type": "field_present", "params": {"field_name": "status"}}
+        ]
+      }
+    },
+  
+    // --- Group 4: Multimodal Calls (LiteLLM path) ---
+    {
+      "test_case_id": "openai_multimodal_001_image_description_local",
+      "description": "Multimodal call to GPT-4o-mini to describe a local image.",
+      "llm_config": {
+        "model": "openai/gpt-4o-mini",
+        "messages": [{"role": "user", "content": [{"type": "text", "text": "What colors are prominent in this image?"}, {"type": "image_url", "image_url": {"url": "test_images_poc/dummy_image.png"}} ]}],
+        "max_tokens": 150,
+        "image_directory": "./src/llm_call/proof_of_concept/test_images_poc", 
+        "validation": [{"type": "response_not_empty"}]
+      }
+    },
+    {
+      "test_case_id": "openai_multimodal_002_http_image",
+      "description": "Multimodal call to GPT-4o-mini with an HTTP image URL.",
+      "llm_config": {
+        "model": "openai/gpt-4o-mini",
+        "messages": [{"role": "user", "content": [{"type": "text", "text": "What is this a logo of?"},{"type": "image_url", "image_url": {"url": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"}} ]}],
+        "max_tokens": 100,
+        "validation": [{"type": "response_not_empty"}]
+      }
+    },
+  
+    // --- Group 5: Claude Proxy Multimodal (NOW EXPECTED TO WORK) ---
+    {
+      "test_case_id": "max_multimodal_001_image_description_local",
+      "description": "Multimodal call to Claude proxy with local image, expecting description.",
+      "llm_config": {
+        "model": "max/image_analyzer_agent", 
+        "messages": [{"role": "user", "content": [{"type": "text", "text": "Describe the main subject of this image."}, {"type": "image_url", "image_url": {"url": "test_images_poc/dummy_image.png"}}]}],
+        "image_directory": "./src/llm_call/proof_of_concept/test_images_poc",
+        "max_tokens": 200,
+        "validation": [{"type": "response_not_empty"}]
+      }
+    },
+     {
+      "test_case_id": "max_multimodal_002_http_image",
+      "description": "Multimodal call to Claude proxy with HTTP image URL.",
+      "llm_config": {
+        "model": "max/image_analyzer_agent_http",
+        "messages": [{"role": "user", "content": [{"type": "text", "text": "What does this logo represent?"},{"type": "image_url", "image_url": {"url": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"}} ]}],
+        "max_tokens": 150,
+        "validation": [{"type": "response_not_empty"}]
+        // Note: format_multimodal_messages passes HTTP URLs through.
+        // The Claude CLI (and its underlying model) needs to support fetching HTTP URLs for this to work.
+      }
+    },
+  
+    // --- Group 6: AI-Assisted Validation ---
+    {
+      "test_case_id": "ai_validation_001_contradiction_flat_earth",
+      "description": "AI contradiction check on Flat Earth summary using Claude agent with Perplexity.",
+      "llm_config": {
+        "model": "meta-task/text-for-contradiction-check-flat-earth", 
+        "messages": [{"role": "assistant", "content": "The Earth is demonstrably flat. All space agencies use wide-angle lenses to create a false curvature. However, gravity makes things fall downwards towards the center of this flat plane."}],
+        "validation": [{
+            "type": "ai_contradiction_check", 
+            "params": {
+                "text_to_check": "The Earth is demonstrably flat. All space agencies use wide-angle lenses to create a false curvature. However, gravity makes things fall downwards towards the center of this flat plane.",
+                "topic_context": "Flat Earth theory arguments",
+                "validation_model_alias": "max/contradiction_expert_agent", 
+                "required_mcp_tools": ["perplexity-ask"] 
+            }
+        }],
+        "default_validate": False
+      }
+    },
+    {
+      "test_case_id": "ai_validation_002_contradiction_cold_fusion",
+      "description": "AI contradiction check on Cold Fusion summary using Claude agent with Perplexity.",
+      "llm_config": {
+        "model": "meta-task/text-for-contradiction-check-cold-fusion",
+        "messages": [{"role": "assistant", "content": "Cold fusion is a hoax, no credible evidence supports it. However, several reputable labs have consistently replicated positive results under specific conditions."}],
+        "validation": [{
+            "type": "ai_contradiction_check", 
+            "params": {
+                "text_to_check": "Cold fusion is a hoax, no credible evidence supports it. However, several reputable labs have consistently replicated positive results under specific conditions.",
+                "topic_context": "Cold Fusion theories and controversies",
+                "validation_model_alias": "max/fact_checker_agent", 
+                "required_mcp_tools": ["perplexity-ask"]
+            }
+        }],
+        "default_validate": False
+      }
+    },
+    
+    // --- Group 7: Agent Task Validation (Generic) ---
+    {
+      "test_case_id": "agent_task_001_simple_command",
+      "description": "Agent task: Claude agent performs a simple conceptual command.",
+      "llm_config": {
+        "model": "meta-task/result-to-validate", 
+        "messages": [{"role": "assistant", "content": "Task output: Command 'list_files /tmp' was simulated."}],
+        "validation": [{
+            "type": "agent_task",
+            "params": {
+                "validation_model_alias": "max/task_verifier_agent",
+                "task_prompt_to_claude": "The previous step was supposed to list files in /tmp and the output was '{TEXT_TO_VALIDATE}'. Based on this output, did it seem like the command was understood and executed (even if simulated)? Respond with standard validation JSON, setting 'validation_passed' accordingly.",
+                "mcp_config": { "mcpServers": { "simple_executor": {"command": "placeholder_tool"} } }, // conceptual tool for agent
+                "success_criteria": {"must_contain_in_reasoning": "understood and executed"}
+            }
+        }],
+        "default_validate": False,
+        "original_user_prompt": "User asked to list files in /tmp." // For {ORIGINAL_USER_PROMPT}
+      }
+    },
+  
+    // --- Group 8: Iterative Code Generation with Staged Retries ---
+    {
+      "test_case_id": "code_gen_001_force_tool_retry",
+      "description": "Code generation designed to fail, then trigger tool-use instruction.",
+      "llm_config": {
+        "model": "max/code_generator_staged_retry",
+        "messages": [
+          {"role": "system", "content": "You are a Python coder. Respond ONLY with code. For the first attempt, create a function `greet(name)` but miss the colon, like `deff greet(name)`."},
+          {"role": "user", "content": "Write `greet(name)` to print 'Hello, {name}'."}
+        ],
+        "retry_config": {"max_attempts": 3, "debug_mode": True, "initial_delay": 1},
+        "max_attempts_before_tool_use": 1, 
+        "debug_tool_name": "perplexity-ask", 
+        "debug_tool_mcp_config": { "mcpServers": { "perplexity-ask": {"command": "...", "args": ["..."], "env": {}} }},
+        "validation": [{"type": "agent_task", "params": {
+            "validation_model_alias": "max/python_syntax_checker_agent",
+            "task_prompt_to_claude": "Is the Python code '{CODE_TO_VALIDATE}' syntactically correct? Respond JSON: {\"validation_passed\": <bool>, \"reasoning\": \"<str>\", \"details\": {\"syntax_ok\": <bool>}}",
+            "success_criteria": {"all_true_in_details_keys": ["syntax_ok"]}
+        }}],
+        "original_user_prompt": "Write `greet(name)` function."
+      }
+    },
+    {
+      "test_case_id": "code_gen_002_force_human_escalation",
+      "description": "Code gen designed to always fail validation and trigger human escalation.",
+      "llm_config": {
+        "model": "max/stubborn_code_generator",
+        "messages": [{"role": "user", "content": "Write Python `def add(a,b): return a+b`"}],
+        "retry_config": {"max_attempts": 3, "debug_mode": True},
+        "max_attempts_before_tool_use": 1, 
+        "max_attempts_before_human": 2, 
+        "validation": [{"type": "agent_task", "params": {
+            "validation_model_alias": "max/code_tester_agent_strict",
+            "task_prompt_to_claude": "Does this code: '{CODE_TO_VALIDATE}' exactly contain 'def add(a,b):\\n    return a + b'? Respond JSON: {\"validation_passed\": <bool>, \"reasoning\": \"<str>\", \"details\": {}}",
+            "success_criteria": {} 
+        }}],
+        "original_user_prompt": "Write function add(a,b)."
+      }
+    },
+  
+    // --- Group 9: Simple calls with no explicit validation (testing defaults) ---
+    {
+      "test_case_id": "misc_001_openai_no_validation",
+      "description": "Simple OpenAI call, should use default PoCResponseNotEmptyValidator.",
+      "llm_config": {
+        "model": "openai/gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": "What is the speed of light?"}]
+      }
+    },
+    {
+      "test_case_id": "misc_002_max_empty_response_test",
+      "description": "Claude proxy call; server needs to be prompted/mocked to return empty to test default validator.",
+      "llm_config": {
+        "model": "max/empty_responder_test", 
+        "messages": [{"role": "user", "content": "Please say absolutely nothing in response."}]
+      }
+    },
+    {
+      "test_case_id": "misc_003_short_max_tokens_vertex",
+      "description": "Vertex call with low max_tokens, expecting content=None and finish_reason='length'. Handled by default validator.",
+      "llm_config": {
+        "model": "vertex_ai/gemini-1.5-flash-001",
+        "messages": [{"role": "user", "content": "Tell me a very long story about a brave squirrel."}],
+        "max_tokens": 10
+      }
+    },
+  
+    // --- Group 10: Various Validation Combinations ---
+    {
+      "test_case_id": "combo_val_001_json_and_fields_openai",
+      "description": "Request JSON from OpenAI and validate its structure and specific fields.",
+      "llm_config": {
+        "model": "openai/gpt-3.5-turbo-0125", # Specify a model known for good JSON mode
+        "messages": [{"role": "user", "content": "Create a JSON with 'product_name' (string), 'price' (number), and 'in_stock' (boolean) for a blue widget."}],
+        "response_format": {"type": "json_object"},
+        "validation": [
+          {"type": "response_not_empty"},
+          {"type": "json_string"},
+          {"type": "field_present", "params": {"field_name": "product_name"}},
+          {"type": "field_present", "params": {"field_name": "price"}}
+        ]
+      }
+    },
+    {
+      "test_case_id": "combo_val_002_agent_task_specific_mcp",
+      "description": "Agent task where client specifies a limited MCP config for Claude.",
+      "llm_config": {
+        "model": "meta-task/research-topic",
+        "messages": [{"role": "assistant", "content": "Topic: The history of Python programming language."}],
+        "validation": [{
+            "type": "agent_task",
+            "params": {
+                "validation_model_alias": "max/research_validator_agent",
+                "task_prompt_to_claude": "Using ONLY the 'perplexity-ask' tool, research the key milestones in Python's history mentioned in '{TEXT_TO_VALIDATE}'. Verify if these milestones are generally correct. Respond with standard validation JSON.",
+                "mcp_config": { "mcpServers": { "perplexity-ask": {"command": "node", "args": ["path/to/perplexity-tool.js"], "env": {"PERPLEXITY_API_KEY": "key_from_env_or_config"}} } },
+                "success_criteria": {"must_not_contain_string_in_reasoning": "incorrect milestone"}
+            }
+        }],
+        "default_validate": False,
+        "original_user_prompt": "Summarize Python history."
+      }
+    },
+    {
+      "test_case_id": "combo_val_003_multiple_simple_validators",
+      "description": "Using multiple simple Python-based validators on a proxy call.",
+      "llm_config": {
+        "model": "max/data_extractor",
+        "messages": [{"role": "user", "content": "Extract the name and city from: John Doe lives in New York."}],
+        "response_format": {"type": "json_object"}, // We prompt for JSON and validate
+        "validation": [
+          {"type": "response_not_empty"},
+          {"type": "json_string"},
+          {"type": "field_present", "params": {"field_name": "name"}},
+          {"type": "field_present", "params": {"field_name": "city"}}
+        ]
+      }
+    },
+  
+    // --- Group 11: More AI-Assisted and Complex Scenarios ---
+    {
+      "test_case_id": "ai_complex_001_code_refactor_validation",
+      "description": "Claude generates code, another Claude instance validates its functionality and style.",
+      "llm_config": {
+        "model": "max/python_refactor_expert",
+        "messages": [{"role": "user", "content": "Take this Python code: `def old_func(x): return x*x`. Refactor it to `def squared(num): # Docstring here\n  return num**2`."}],
+        "validation": [{
+            "type": "agent_task",
+            "params": {
+              "validation_model_alias": "max/refactor_checker_agent",
+              "task_prompt_to_claude": "Code to validate: ```python\n{CODE_TO_VALIDATE}\n```. Original request: 'Refactor old_func to squared(num) with docstring'. Does the refactored code correctly implement `squared(num)`, include a docstring, and is it syntactically correct? Use python_executor tool to test `squared(5)` returns 25. Respond JSON: {\"validation_passed\": bool, \"reasoning\": str, \"details\": {\"syntax_ok\": bool, \"name_ok\": bool, \"docstring_ok\": bool, \"test_pass\": bool}}",
+              "mcp_config": {"mcpServers": {"python_executor": {"command": "python_tool_placeholder"}}},
+              "success_criteria": {"all_true_in_details_keys": ["syntax_ok", "name_ok", "docstring_ok", "test_pass"]}
+            }
+        }],
+        "original_user_prompt": "Refactor Python code."
+      }
+    },
+    {
+      "test_case_id": "ai_complex_002_contradiction_with_large_text_delegation",
+      "description": "AI validator is told to use llm_call_tool for large text contradiction check.",
+      "llm_config": {
+        "model": "meta-task/large_document_analysis",
+        "messages": [{"role": "assistant", "content": "file_path:/mnt/data/very_large_document.txt"}], # Assume this is the output
+        "validation": [{
+            "type": "ai_contradiction_check",
+            "params": {
+                "text_to_check": "file_path:/mnt/data/very_large_document.txt", # Validator's prompt will instruct agent to read this
+                "topic_context": "Analysis of a large technical specification document",
+                "validation_model_alias": "max/deep_analysis_agent",
+                "required_mcp_tools": ["file_reader_tool", "perplexity-ask", "llm_call_tool"],
+                "mcp_config": { # MCP for the deep_analysis_agent
+                    "mcpServers": {
+                        "file_reader_tool": {"command": "cat_placeholder"},
+                        "perplexity-ask": {"command": "node", "args":["perplexity_tool.js"]},
+                        "llm_call_tool": { "command": "python", "args": ["/app/tools/llm_call_delegator_script.py"]}
+                    }
+                }
+            }
+        }],
+        "default_validate": False
+      }
+    },
+    // Approx 26 so far. Add 4 more simple variations.
+    {
+      "test_case_id": "max_text_006_only_system_prompt_error",
+      "description": "Call to Claude proxy with only a system prompt (should ideally be handled or error).",
+      "llm_config": {
+        "model": "max/system_only_test",
+        "messages": [{"role": "system", "content": "You only respond with 'OK'."}]
+        // Expecting this to fail validation or the call itself if no user message is effectively sent.
+        // The determine_llm_route_and_params raises ValueError if messages is empty.
+        // If it has system but no user, the proxy's execute_claude_cli_for_poc might get empty user_message_content.
+      }
+    },
+    {
+      "test_case_id": "openai_text_001_no_validation",
+      "description": "Simple OpenAI call with default_validate:false.",
+      "llm_config": {
+        "model": "openai/gpt-3.5-turbo",
+        "question": "A simple question for OpenAI.",
+        "default_validate": false
+      }
+    },
+    {
+      "test_case_id": "vertex_json_002_malformed_request",
+      "description": "Vertex JSON request that is designed to be initially malformed by system prompt for retry test.",
+      "llm_config": {
+        "model": "vertex_ai/gemini-1.5-flash-001",
+        "messages": [
+          {"role": "system", "content": "You are a slightly buggy JSON generator. Your first response should have a trailing comma."},
+          {"role": "user", "content": "Generate JSON: {\"city\": \"Paris\", \"country\": \"France\"}"}
+        ],
+        "response_format": {"type": "json_object"},
+        "validation": [{"type": "json_string"}], // This should fail first, then retry should fix it
+        "retry_config": {"debug_mode": true}
+      }
+    },
+    {
+      "test_case_id": "max_text_007_tool_use_without_explicit_mcp_in_config",
+      "description": "Instruct Claude agent (via agent_task validator) to use a tool, relying on server's default MCP.",
+      "llm_config": {
+        "model": "meta-task/server-default-mcp-test",
+        "messages": [{"role": "assistant", "content": "Some output to validate."}],
+        "validation": [{
+            "type": "agent_task",
+            "params": {
+                "validation_model_alias": "max/tool_user_default_mcp",
+                "task_prompt_to_claude": "Use your 'perplexity-ask' tool to find out today's date and report it in JSON: {\"date\": \"YYYY-MM-DD\"}. Do not use any other tools.",
+                // No mcp_config sent here, so server uses DEFAULT_ALL_TOOLS_MCP_CONFIG
+                "success_criteria": {"field_present_in_details": "date"} // Assuming details will contain the JSON
+            }
+        }],
+        "default_validate": False
+      }
+    }
+  ]

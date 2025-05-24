@@ -185,13 +185,15 @@ async def make_llm_request(llm_config: Dict[str, Any]) -> Union[Dict[str, Any], 
             except Exception as e:
                 logger.error(f"Failed to load validator '{strategy_type}': {e}")
         
+        # Get response format for validation and provider calls
+        response_format = processed_config.get("response_format")
+        
         # Add default validators if none specified
         if not validation_strategies:
             # Always use ResponseNotEmptyValidator as default
             validation_strategies.append(ResponseNotEmptyValidator())
             
             # Add JSON validator if JSON response format requested
-            response_format = processed_config.get("response_format")
             if isinstance(response_format, dict) and response_format.get("type") == "json_object":
                 validation_strategies.append(JsonStringValidator())
         
@@ -204,10 +206,10 @@ async def make_llm_request(llm_config: Dict[str, Any]) -> Union[Dict[str, Any], 
         # Step 6: Execute with retry and validation
         messages = processed_config.get("messages", [])
         
-        # Remove messages and response_format from api_params as they're passed separately
+        # Remove validation, messages and response_format from api_params as they're handled separately
         api_params_cleaned = {
             k: v for k, v in api_params.items() 
-            if k not in ["messages", "response_format"]
+            if k not in ["messages", "response_format", "validation", "retry_config"]
         }
         
         response = await retry_with_validation(

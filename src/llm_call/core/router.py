@@ -80,6 +80,7 @@ def resolve_route(llm_config: Dict[str, Any]) -> Tuple[Type[BaseLLMProvider], Di
         api_params.pop("vertex_credentials_path", None)
         api_params.pop("retry_config", None)  # Remove retry config
         api_params.pop("skip_claude_multimodal", None)  # Remove internal flag
+        api_params.pop("provider", None)  # Remove provider key - not an API param
         
         # Handle Vertex AI specific parameters (from POC)
         if model_name_lower.startswith("vertex_ai/"):

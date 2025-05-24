@@ -42,6 +42,8 @@ dependencies = [
     "files-to-prompt>=0.6",
     "typer>=0.9.0", # CLI framework for slash command generation
     "pytest>=8.3.5",
+    "wikipedia>=1.4.0",
+    "wikipedia-api>=0.8.1",
 ]
 
 [project.optional-dependencies]

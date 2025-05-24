@@ -91,7 +91,7 @@ def build_llm_config(
     if model:
         config["model"] = model
     if validation:
-        config["validation"] = [{"strategy": v} for v in validation]
+        config["validation"] = [{"type": v} for v in validation]
     if retry_max is not None:
         config["retry_config"] = {"max_attempts": retry_max}
     if temperature is not None:
@@ -334,10 +334,10 @@ def models(
         # Common models grouped by provider
         common_models = {
             "OpenAI": ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
-            "Anthropic": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+            "Anthropic": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "claude-opus-4-20250514"],
             "Google": ["gemini-pro", "gemini-pro-vision"],
             "Local": ["ollama/llama2", "ollama/mistral"],
-            "Claude CLI": ["max/claude-3-opus", "max/claude-3-sonnet", "max/claude-3-haiku"]
+            "Claude CLI": ["max/claude-3-opus", "max/claude-3-sonnet", "max/claude-3-haiku", "max/claude-opus-4-20250514"]
         }
         
         console.print("[bold]Available Models:[/bold]")
