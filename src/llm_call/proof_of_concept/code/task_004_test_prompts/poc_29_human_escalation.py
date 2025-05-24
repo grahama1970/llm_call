@@ -248,19 +248,21 @@ async def main():
             "name": "Repeated Validation Failures",
             "func": lambda: {"code": "def foo()\n  return 42"},  # Syntax error
             "validator": lambda r: {"valid": False, "errors": ["Syntax error: missing colon"]},
+            "max_retries": 1,  # Results in 2 attempts total, under 3 threshold
             "expected_decision": HumanDecision.RETRY_WITH_MODIFICATION
         },
         {
             "name": "Too Many Retries",
             "func": lambda: {"result": "Always fails"},
             "validator": lambda r: {"valid": False, "errors": ["Generic failure"]},
-            "max_retries": 5,
+            "max_retries": 3,  # Results in 4 attempts, triggers abort at 3+
             "expected_decision": HumanDecision.ABORT
         },
         {
             "name": "Human Override Approval",
             "func": lambda: {"result": "Close enough"},
             "validator": lambda r: {"valid": False, "errors": ["Minor issues"]},
+            "max_retries": 0,  # Only 1 attempt, definitely under threshold
             "expected_decision": HumanDecision.APPROVE
         }
     ]

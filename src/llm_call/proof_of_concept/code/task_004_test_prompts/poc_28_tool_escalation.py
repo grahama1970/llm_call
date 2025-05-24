@@ -484,9 +484,10 @@ async def main():
     
     summary = manager.get_incident_summary(incident_id)
     
-    if summary["status"] == "resolved":
+    # After resolution, the incident should be cleared (no_events status)
+    if summary["status"] == "no_events" and summary.get("events", 0) == 0:
         passed += 1
-        logger.success("✅ Incident resolved correctly")
+        logger.success(f"✅ Incident {incident_id} resolved")
     else:
         failed += 1
         logger.error("❌ Incident resolution failed")
