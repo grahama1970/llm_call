@@ -309,7 +309,7 @@ class AsyncPollingManager:
         for key, value in kwargs.items():
             if key == 'result' or key == 'progress':
                 updates.append(f'{key} = ?')
-                values.append(json.dumps(value))
+                values.append(json.dumps(value, default=str))
             else:
                 updates.append(f'{key} = ?')
                 values.append(value)
@@ -336,9 +336,9 @@ class AsyncPollingManager:
                 task_info.created_at,
                 task_info.started_at,
                 task_info.completed_at,
-                json.dumps(task_info.result) if task_info.result else None,
+                json.dumps(task_info.result, default=str) if task_info.result else None,
                 task_info.error,
-                json.dumps(task_info.progress) if task_info.progress else None
+                json.dumps(task_info.progress, default=str) if task_info.progress else None
             )
         )
         conn.commit()

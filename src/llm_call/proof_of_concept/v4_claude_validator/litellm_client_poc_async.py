@@ -50,16 +50,22 @@ def get_polling_manager() -> AsyncPollingManager:
             result = await original_llm_call(clean_config)
             
             # Convert ModelResponse to dict for JSON serialization
-            if hasattr(result, 'model_dump_json'):
-                # Use pydantic v2 method if available
+            if hasattr(result, 'model_dump'):
+                # Use pydantic v2 method (preferred)
+                return result.model_dump(mode='json')
+            elif hasattr(result, 'model_dump_json'):
+                # Alternative pydantic v2 method
                 import json
                 return json.loads(result.model_dump_json())
             elif hasattr(result, 'dict'):
                 # Use pydantic v1 method
                 return result.dict()
+            elif hasattr(result, 'to_dict'):
+                # Some objects have a to_dict method
+                return result.to_dict()
             elif hasattr(result, '__dict__'):
                 # Fallback to dict conversion
-                return result.__dict__
+                return vars(result)
             else:
                 # Already a dict or basic type
                 return result
@@ -126,7 +132,18 @@ async def llm_call(llm_config_input: Dict[str, Any],
         # Clean config by removing custom parameters
         clean_config = {k: v for k, v in llm_config_input.items() 
                        if k not in ['polling', 'wait_for_completion', 'timeout']}
-        return await original_llm_call(clean_config)
+        result = await original_llm_call(clean_config)
+        
+        # Convert ModelResponse to dict if needed
+        if hasattr(result, 'model_dump'):
+            return result.model_dump(mode='json')
+        elif hasattr(result, 'dict'):
+            return result.dict()
+        elif isinstance(result, dict):
+            return result
+        else:
+            # Fallback
+            return vars(result) if hasattr(result, '__dict__') else result
         
     # Submit to polling manager
     manager = get_polling_manager()
@@ -155,10 +172,20 @@ async def llm_call_with_timeout(llm_config_input: Dict[str, Any],
     """
     try:
         # Try direct call with timeout
-        return await asyncio.wait_for(
+        result = await asyncio.wait_for(
             original_llm_call(llm_config_input),
             timeout=timeout
         )
+        # Convert ModelResponse to dict if needed
+        if hasattr(result, 'model_dump'):
+            return result.model_dump(mode='json')
+        elif hasattr(result, 'dict'):
+            return result.dict()
+        elif isinstance(result, dict):
+            return result
+        else:
+            # Fallback
+            return vars(result) if hasattr(result, '__dict__') else result
     except asyncio.TimeoutError:
         logger.warning(f"Direct call timed out after {timeout}s, switching to polling mode")
         

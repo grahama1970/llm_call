@@ -4,6 +4,7 @@ from loguru import logger
 
 # Assuming these core base classes are importable after 'uv pip install -e .'
 from llm_call.core.base import ValidationResult, AsyncValidationStrategy
+from llm_call.core.utils.json_utils import clean_json_string
 
 # Import for PoCAgentTaskValidator to specify MCP tools for Claude
 # This is a PoC-specific import pattern; in core, config would be handled differently.
@@ -65,11 +66,16 @@ class PoCJsonStringValidator(AsyncValidationStrategy):
         if not isinstance(content_str, str) or not content_str.strip():
             return ValidationResult(valid=False, error="Content for JSON validation is empty or not a string.")
         
+        # Use clean_json_string for flexible JSON extraction
         try:
-            parsed_data = json.loads(content_str)
+            parsed_data = clean_json_string(content_str, return_dict=True)
+            if parsed_data is None:
+                # clean_json_string returns None if no JSON found
+                return ValidationResult(valid=False, error="No valid JSON found in content",
+                                        suggestions=["Ensure LLM is instructed for JSON output.", "Try using `response_format={'type': 'json_object'}`."])
             return ValidationResult(valid=True, debug_info={"parsed_json_type": type(parsed_data).__name__})
-        except json.JSONDecodeError as e:
-            return ValidationResult(valid=False, error=f"Content is not valid JSON: {e}",
+        except Exception as e:
+            return ValidationResult(valid=False, error=f"Error extracting JSON: {e}",
                                     suggestions=["Ensure LLM is instructed for JSON output.", "Try using `response_format={'type': 'json_object'}`."])
 
 class PoCFieldPresentValidator(AsyncValidationStrategy):
@@ -95,10 +101,13 @@ class PoCFieldPresentValidator(AsyncValidationStrategy):
         
         if not isinstance(content_str, str) or not content_str.strip(): 
             return ValidationResult(valid=False, error="Content is empty/not string for field check.")
+        # Use clean_json_string for flexible JSON extraction
         try: 
-            data_to_check = json.loads(content_str)
-        except json.JSONDecodeError: 
-            return ValidationResult(valid=False, error=f"Content not JSON, cannot check field '{self._field_name}'.")
+            data_to_check = clean_json_string(content_str, return_dict=True)
+            if data_to_check is None:
+                return ValidationResult(valid=False, error=f"No valid JSON found, cannot check field '{self._field_name}'.")
+        except Exception: 
+            return ValidationResult(valid=False, error=f"Error extracting JSON, cannot check field '{self._field_name}'.")
         if not isinstance(data_to_check, dict): 
             return ValidationResult(valid=False, error=f"JSON content not dict, cannot check field '{self._field_name}'.")
 
@@ -198,7 +207,15 @@ class PoCAgentTaskValidator(AsyncValidationStrategy): # This is our primary AI-a
                  return ValidationResult(valid=False, error=f"[{self.name}] Validation agent returned empty content.")
             
             logger.debug(f"[{self.name}] Validation agent raw report string: {agent_report_str}")
-            agent_report = json.loads(agent_report_str) # Agent MUST return valid JSON
+            # Use clean_json_string for flexible extraction from agent responses
+            agent_report = clean_json_string(agent_report_str, return_dict=True)
+            if agent_report is None or not isinstance(agent_report, dict):
+                # If we got a string or other non-dict, it's not a valid agent response
+                error_msg = f"[{self.name}] Agent response is not a valid JSON object."
+                if agent_report is not None:
+                    error_msg += f" Got {type(agent_report).__name__}: {repr(agent_report)[:100]}"
+                error_msg += f" Raw response: {agent_report_str[:300]}..."
+                return ValidationResult(valid=False, error=error_msg)
             
             # Apply success_criteria to interpret agent_report
             is_valid = True # Assume valid unless criteria say otherwise
@@ -214,6 +231,17 @@ class PoCAgentTaskValidator(AsyncValidationStrategy): # This is our primary AI-a
                 if substring.lower() in reasoning.lower():
                     is_valid = False
                     reasoning = f"Agent reasoning contained forbidden string '{substring}'. Full reasoning: {reasoning}"
+            elif self._success_criteria.get("all_true_in_details_keys"):
+                # Check if all specified keys in details are True
+                required_keys = self._success_criteria["all_true_in_details_keys"]
+                details = agent_report.get("details", {})
+                failed_keys = []
+                for key in required_keys:
+                    if not details.get(key, False) == True:
+                        failed_keys.append(key)
+                if failed_keys:
+                    is_valid = False
+                    reasoning = f"Agent validation failed: {len(failed_keys)} of {len(required_keys)} checks failed. Failed: {failed_keys}. Agent reasoning: {reasoning}"
             # Add more sophisticated success criteria checks here as needed
 
             if is_valid:
@@ -224,8 +252,6 @@ class PoCAgentTaskValidator(AsyncValidationStrategy): # This is our primary AI-a
                 return ValidationResult(valid=False, error=f"Agent validation failed: {reasoning}", 
                                         suggestions=[f"Review agent report. Agent reasoning: {agent_report.get('reasoning', 'N/A')[:200]}..."],
                                         debug_info={"agent_report": agent_report})
-        except json.JSONDecodeError as e:
-            return ValidationResult(valid=False, error=f"[{self.name}] Could not parse JSON from agent: {e}. Raw response: {agent_report_str[:300]}...", debug_info={"raw_agent_response": agent_report_str})
         except Exception as e:
             logger.exception(f"[{self.name}] Error processing agent response.")
             return ValidationResult(valid=False, error=f"[{self.name}] Critical error processing agent response: {e}", debug_info={"raw_agent_response": str(agent_response_dict)})
