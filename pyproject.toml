@@ -57,7 +57,7 @@ full = [
     "weasyprint>=61.0", # Updated version
 ]"
 
-# 'dev' group is better under [project.optional-dependencies] for modern pip/uv
+# 'dev' group is better under [project.optional-dependencies]" for modern pip/uv
 # or use [tool.hatch.envs.default.features]" if using Hatch environments extensively.
 # Let's keep it under optional-dependencies for broader compatibility.
 dev = [
