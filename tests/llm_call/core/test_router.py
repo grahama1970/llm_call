@@ -5,7 +5,6 @@ Tests the routing logic from Task 018 for integrating POC patterns.
 """
 
 import pytest
-from unittest.mock import patch
 from llm_call.core.router import resolve_route
 from llm_call.core.providers.claude_cli_proxy import ClaudeCLIProxyProvider
 from llm_call.core.providers.litellm_provider import LiteLLMProvider

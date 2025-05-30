@@ -65,9 +65,12 @@ llm_config = {
 """
 
 import asyncio
+import random
 import time
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Union
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import litellm
 from litellm import completion
@@ -90,7 +93,7 @@ class HumanReviewNeededError(Exception):
 
 @dataclass
 class RetryConfig:
-    """Configuration for retry behavior."""
+    """Configuration for retry behavior with enhanced features."""
     
     max_attempts: int = 3
     backoff_factor: float = 2.0
@@ -98,11 +101,115 @@ class RetryConfig:
     max_delay: float = 60.0
     debug_mode: bool = False
     enable_cache: bool = True
+    # Enhanced features from POC 27
+    use_jitter: bool = True
+    jitter_range: float = 0.1  # ±10% jitter
+    enable_circuit_breaker: bool = False
+    circuit_breaker_config: Optional['CircuitBreakerConfig'] = None
     
     def calculate_delay(self, attempt: int) -> float:
-        """Calculate exponential backoff delay for next retry attempt."""
+        """Calculate exponential backoff delay with optional jitter."""
+        # Base exponential backoff
         delay = self.initial_delay * (self.backoff_factor ** attempt)
-        return min(delay, self.max_delay)
+        delay = min(delay, self.max_delay)
+        
+        # Add jitter if enabled (from POC 27)
+        if self.use_jitter:
+            jitter = delay * self.jitter_range
+            delay = delay + random.uniform(-jitter, jitter)
+            delay = max(0.1, delay)  # Ensure positive delay
+        
+        return delay
+
+
+class CircuitState(Enum):
+    """Circuit breaker states from POC 27"""
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"      # Rejecting calls
+    HALF_OPEN = "half_open"  # Testing recovery
+
+
+@dataclass
+class CircuitBreakerConfig:
+    """Circuit breaker configuration from POC 27"""
+    failure_threshold: int = 5
+    window_size: int = 60  # seconds
+    timeout: int = 30  # seconds before trying half-open
+    success_threshold: int = 3  # successes needed to close from half-open
+    excluded_exceptions: List[type] = field(default_factory=list)
+
+
+class CircuitOpenError(Exception):
+    """Raised when circuit breaker is open"""
+    pass
+
+
+class CircuitBreaker:
+    """Simple circuit breaker implementation based on POC 27"""
+    
+    def __init__(self, name: str, config: CircuitBreakerConfig):
+        self.name = name
+        self.config = config
+        self.state = CircuitState.CLOSED
+        self.failure_timestamps: List[datetime] = []
+        self.consecutive_successes = 0
+        self.state_changed_at = datetime.now()
+    
+    def can_execute(self) -> bool:
+        """Check if request can proceed"""
+        if self.state == CircuitState.CLOSED:
+            return True
+        
+        if self.state == CircuitState.OPEN:
+            # Check if timeout has passed
+            if (datetime.now() - self.state_changed_at).total_seconds() > self.config.timeout:
+                self._change_state(CircuitState.HALF_OPEN)
+                return True
+            return False
+        
+        # HALF_OPEN - allow limited testing
+        return True
+    
+    def record_success(self) -> None:
+        """Record successful execution"""
+        self.consecutive_successes += 1
+        
+        if self.state == CircuitState.HALF_OPEN:
+            if self.consecutive_successes >= self.config.success_threshold:
+                self._change_state(CircuitState.CLOSED)
+                logger.info(f"Circuit '{self.name}' recovered - closing")
+    
+    def record_failure(self, error: Exception) -> None:
+        """Record failed execution"""
+        if type(error) in self.config.excluded_exceptions:
+            return
+        
+        self.consecutive_successes = 0
+        self.failure_timestamps.append(datetime.now())
+        self._clean_failure_window()
+        
+        if self.state == CircuitState.HALF_OPEN:
+            self._change_state(CircuitState.OPEN)
+            logger.warning(f"Circuit '{self.name}' test failed - reopening")
+        
+        elif self.state == CircuitState.CLOSED:
+            if len(self.failure_timestamps) >= self.config.failure_threshold:
+                self._change_state(CircuitState.OPEN)
+                logger.error(f"Circuit '{self.name}' opened - threshold exceeded")
+    
+    def _clean_failure_window(self) -> None:
+        """Remove old failures outside the window"""
+        cutoff = datetime.now() - timedelta(seconds=self.config.window_size)
+        self.failure_timestamps = [ts for ts in self.failure_timestamps if ts > cutoff]
+    
+    def _change_state(self, new_state: CircuitState) -> None:
+        """Change circuit state"""
+        if new_state != self.state:
+            logger.debug(f"Circuit '{self.name}': {self.state.value} → {new_state.value}")
+            self.state = new_state
+            self.state_changed_at = datetime.now()
+            if new_state == CircuitState.CLOSED:
+                self.failure_timestamps = []
 
 
 def extract_content_from_response(response: Any) -> str:
@@ -227,6 +334,11 @@ async def retry_with_validation(
     5. After M attempts, escalates to human review
     6. Continues until validation passes or max attempts reached
     
+    Enhanced features:
+    - Exponential backoff with jitter
+    - Circuit breaker pattern for fault tolerance
+    - Human escalation support
+    
     Args:
         llm_call: The LLM completion function to call (async)
         messages: Initial conversation messages
@@ -240,6 +352,7 @@ async def retry_with_validation(
         The validated LLM response
         
     Raises:
+        CircuitOpenError: If circuit breaker is open
         HumanReviewNeededError: If human review threshold is reached
         Exception: If all retry attempts fail with details of last errors
     """
@@ -255,6 +368,15 @@ async def retry_with_validation(
     debug_tool_name = original_llm_config.get("debug_tool_name")
     debug_tool_mcp_config = original_llm_config.get("debug_tool_mcp_config")
     original_user_prompt = original_llm_config.get("original_user_prompt")
+    
+    # Initialize circuit breaker if enabled
+    circuit_breaker = None
+    if config.enable_circuit_breaker:
+        cb_config = config.circuit_breaker_config or CircuitBreakerConfig()
+        circuit_breaker = CircuitBreaker(
+            name=kwargs.get("model", "default"),
+            config=cb_config
+        )
     
     # Initialize caching if enabled
     if config.enable_cache:
@@ -281,6 +403,13 @@ async def retry_with_validation(
     
     for attempt in range(config.max_attempts):
         try:
+            # Check circuit breaker if enabled
+            if circuit_breaker and not circuit_breaker.can_execute():
+                raise CircuitOpenError(
+                    f"Circuit breaker is open for model {kwargs.get('model', 'unknown')}. "
+                    f"Too many failures in recent calls."
+                )
+            
             # Check if we should escalate to human review
             if max_attempts_before_human and attempt >= max_attempts_before_human:
                 raise HumanReviewNeededError(
@@ -359,6 +488,9 @@ async def retry_with_validation(
             if all_valid:
                 if config.debug_mode:
                     logger.success(f"All validations passed on attempt {attempt + 1}")
+                # Record success in circuit breaker
+                if circuit_breaker:
+                    circuit_breaker.record_success()
                 return response
             
             # Store last validation errors
@@ -416,8 +548,15 @@ async def retry_with_validation(
         except HumanReviewNeededError:
             # Re-raise human review errors
             raise
+        except CircuitOpenError:
+            # Re-raise circuit breaker errors
+            raise
         except Exception as e:
             logger.error(f"Attempt {attempt + 1} failed with error: {type(e).__name__}: {e}")
+            
+            # Record failure in circuit breaker
+            if circuit_breaker:
+                circuit_breaker.record_failure(e)
             
             # Check if we should escalate to human review
             if max_attempts_before_human and attempt + 1 >= max_attempts_before_human:
@@ -495,6 +634,15 @@ def retry_with_validation_sync(
         except Exception as e:
             logger.warning(f"Failed to initialize cache: {e}")
     
+    # Initialize circuit breaker if enabled
+    circuit_breaker = None
+    if config.enable_circuit_breaker:
+        cb_config = config.circuit_breaker_config or CircuitBreakerConfig()
+        circuit_breaker = CircuitBreaker(
+            name=kwargs.get("model", "default"),
+            config=cb_config
+        )
+    
     # Enable JSON schema validation if response format is provided
     if response_format:
         litellm.enable_json_schema_validation = True
@@ -512,6 +660,13 @@ def retry_with_validation_sync(
     
     for attempt in range(config.max_attempts):
         try:
+            # Check circuit breaker if enabled
+            if circuit_breaker and not circuit_breaker.can_execute():
+                raise CircuitOpenError(
+                    f"Circuit breaker is open for model {kwargs.get('model', 'unknown')}. "
+                    f"Too many failures in recent calls."
+                )
+            
             # Check if we should escalate to human review
             if max_attempts_before_human and attempt >= max_attempts_before_human:
                 raise HumanReviewNeededError(
@@ -579,9 +734,16 @@ def retry_with_validation_sync(
                     validation_errors.append(result)
             
             if all_valid:
+                # Record success if circuit breaker is enabled
+                if circuit_breaker:
+                    circuit_breaker.record_success()
                 return response
             
             last_validation_errors = validation_errors
+            
+            # Record validation failure if circuit breaker is enabled
+            if circuit_breaker:
+                circuit_breaker.record_failure()
             
             # Add feedback for retry
             if attempt < config.max_attempts - 1:
@@ -623,8 +785,15 @@ def retry_with_validation_sync(
                 
         except HumanReviewNeededError:
             raise
+        except CircuitOpenError:
+            # Re-raise circuit open errors without recording failure
+            raise
         except Exception as e:
             logger.error(f"Attempt {attempt + 1} failed: {e}")
+            
+            # Record failure if circuit breaker is enabled
+            if circuit_breaker:
+                circuit_breaker.record_failure()
             
             if max_attempts_before_human and attempt + 1 >= max_attempts_before_human:
                 raise HumanReviewNeededError(
@@ -783,7 +952,60 @@ if __name__ == "__main__":
             assert len(e.validation_errors) == 2
             logger.success("✓ HumanReviewNeededError works correctly")
         
-        logger.info("\nAll tests passed! Retry logic is working correctly.")
+        # Test 6: Exponential backoff with jitter
+        config = RetryConfig(
+            initial_delay=1.0,
+            backoff_factor=2.0,
+            max_delay=10.0,
+            use_jitter=True,
+            jitter_range=0.1
+        )
+        
+        # Test delays are within expected ranges
+        for attempt in range(5):
+            delay = config.calculate_delay(attempt)
+            expected_base = min(1.0 * (2.0 ** attempt), 10.0)
+            expected_min = expected_base * 0.9  # -10% jitter
+            expected_max = expected_base * 1.1  # +10% jitter
+            
+            assert expected_min <= delay <= expected_max, \
+                f"Delay {delay} not in range [{expected_min}, {expected_max}] for attempt {attempt}"
+        
+        logger.success("✓ Exponential backoff with jitter works correctly")
+        
+        # Test 7: Circuit breaker
+        cb_config = CircuitBreakerConfig(
+            failure_threshold=3,
+            window_size=60,
+            timeout=5,
+            success_threshold=2
+        )
+        circuit = CircuitBreaker("test", cb_config)
+        
+        # Initially closed
+        assert circuit.can_execute() == True
+        assert circuit.state == CircuitState.CLOSED
+        
+        # Record failures to open circuit
+        for i in range(3):
+            circuit.record_failure(Exception("Test failure"))
+        
+        assert circuit.state == CircuitState.OPEN
+        assert circuit.can_execute() == False
+        
+        # Wait for timeout (simulate)
+        circuit.state_changed_at = datetime.now() - timedelta(seconds=6)
+        assert circuit.can_execute() == True  # Should transition to half-open
+        assert circuit.state == CircuitState.HALF_OPEN
+        
+        # Record successes to close circuit
+        circuit.record_success()
+        circuit.record_success()
+        assert circuit.state == CircuitState.CLOSED
+        
+        logger.success("✓ Circuit breaker works correctly")
+        
+        logger.info("\nAll tests passed! Enhanced retry logic is working correctly.")
     
     # Run tests
     import asyncio

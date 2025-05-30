@@ -24,7 +24,38 @@ from loguru import logger
 
 from llm_call.core.base import ValidationResult, AsyncValidationStrategy
 from llm_call.core.strategies import validator
-from llm_call.core.api.mcp_handler import build_selective_mcp_config, DEFAULT_ALL_TOOLS_MCP_CONFIG
+
+
+# Default MCP configuration for all tools
+DEFAULT_ALL_TOOLS_MCP_CONFIG = {
+    "mcpServers": {
+        "perplexity-ask": {
+            "command": "npx",
+            "args": ["-y", "@haltiamieli/perplexity-server"],
+            "env": {"PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"}
+        },
+        "desktop-commander": {
+            "command": "npx",
+            "args": ["-y", "@enesien/mcp-desktop-commander"],
+            "env": {}
+        }
+    }
+}
+
+
+def build_selective_mcp_config(required_tools: List[str]) -> Dict[str, Any]:
+    """Build MCP configuration with only the required tools."""
+    if not required_tools:
+        return {}
+    
+    config = {"mcpServers": {}}
+    all_servers = DEFAULT_ALL_TOOLS_MCP_CONFIG["mcpServers"]
+    
+    for tool in required_tools:
+        if tool in all_servers:
+            config["mcpServers"][tool] = all_servers[tool]
+    
+    return config if config["mcpServers"] else {}
 
 
 class AIAssistedValidator(AsyncValidationStrategy):

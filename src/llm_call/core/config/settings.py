@@ -39,8 +39,8 @@ class ClaudeProxySettings(BaseModel):
     cli_path: str = Field(default="/home/graham/.nvm/versions/node/v22.15.0/bin/claude")
     workspace_dir: Path = Field(default_factory=lambda: Path.home() / ".claude_workspace")
     host: str = Field(default="127.0.0.1")
-    port: int = Field(default=8001)
-    proxy_url: str = Field(default="http://127.0.0.1:8001/v1/chat/completions")
+    port: int = Field(default=3010)  # Match the running POC server
+    proxy_url: str = Field(default="http://127.0.0.1:3010/v1/chat/completions")
     default_model_label: str = Field(default="max/poc-claude-default")
     
     @property

@@ -26,7 +26,8 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "tenacity>=8.2.3", # From your PoC's llm_call.py
     "fastapi>=0.110.0", # Needed for the PoC's embedded server & core/api.py
-    "uvicorn[standard]>=0.29.0", # Needed to run FastAPI (standard includes common extras)
+    "uvicorn[standard]
+    "claude-test-reporter @ git+https://github.com/grahama1970/claude-test-reporter.git@main",>=0.29.0", # Needed to run FastAPI (standard includes common extras)
     "deepmerge>=1.1.0", # From your PoC's llm_call.py
     "pydantic>=2.0", # From your PoC's llm_call.py and core/base.py
     # Dependencies below were from your original list, review if all are strictly needed

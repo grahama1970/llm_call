@@ -104,8 +104,8 @@ class AsyncPollingManager:
         # Initialize database
         self._init_db()
         
-        # Start cleanup task
-        asyncio.create_task(self._periodic_cleanup())
+        # Cleanup task will be started when first task is submitted
+        self._cleanup_task_started = False
         
     def _init_db(self):
         """Initialize SQLite database."""
@@ -136,6 +136,11 @@ class AsyncPollingManager:
         
         Returns task_id immediately while task runs in background.
         """
+        # Start cleanup task on first submission
+        if not self._cleanup_task_started:
+            asyncio.create_task(self._periodic_cleanup())
+            self._cleanup_task_started = True
+            
         task_id = str(uuid.uuid4())
         
         # Create task info

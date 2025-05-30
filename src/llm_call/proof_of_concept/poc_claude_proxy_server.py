@@ -16,6 +16,7 @@ import asyncio
 import httpx
 import json
 import os
+import re
 import subprocess
 import shlex
 from pathlib import Path
@@ -305,6 +306,7 @@ async def poc_chat_completions_endpoint(request: Request):
         # Extract optional parameters
         temperature = data.get("temperature", 0.0)
         max_tokens = data.get("max_tokens", 4096)
+        response_format = data.get("response_format")
         
         # Handle MCP configuration
         mcp_config = data.get("mcp_config")
@@ -327,6 +329,40 @@ async def poc_chat_completions_endpoint(request: Request):
         
         if claude_response is None:
             raise HTTPException(status_code=500, detail="Failed to get response from Claude CLI")
+        
+        # Extract JSON if response_format specifies it
+        if response_format and response_format.get("type") == "json_object":
+            # Try to extract JSON from Claude's response
+            json_patterns = [
+                r'```json\s*([\s\S]*?)\s*```',  # Markdown JSON block
+                r'```\s*([\s\S]*?)\s*```',       # Generic code block  
+                r'\{[\s\S]*\}'                   # Raw JSON object
+            ]
+            
+            extracted_json = None
+            for pattern in json_patterns:
+                matches = re.findall(pattern, claude_response)
+                if matches:
+                    # Try to parse the first match
+                    try:
+                        json_str = matches[0] if pattern != r'\{[\s\S]*\}' else claude_response
+                        # Find the JSON object in the string
+                        if pattern == r'\{[\s\S]*\}':
+                            # Extract just the JSON part
+                            start = json_str.find('{')
+                            end = json_str.rfind('}') + 1
+                            if start >= 0 and end > start:
+                                json_str = json_str[start:end]
+                        extracted_json = json.loads(json_str)
+                        # Successfully parsed - use the JSON string as response
+                        claude_response = json.dumps(extracted_json)
+                        logger.info(f"Extracted JSON from Claude response: {claude_response[:100]}...")
+                        break
+                    except json.JSONDecodeError:
+                        continue
+            
+            if not extracted_json:
+                logger.warning("Failed to extract valid JSON from Claude response despite response_format")
         
         # Build OpenAI-compatible response
         response_payload = {

@@ -73,6 +73,10 @@ class ResponseNotEmptyValidator(AsyncValidationStrategy):
                     )
                 content = response.choices[0].message.content or ""
             
+            # Handle string responses (for testing/direct usage)
+            elif isinstance(response, str):
+                content = response
+            
             else:
                 return ValidationResult(
                     valid=False,
@@ -134,6 +138,10 @@ class JsonStringValidator(AsyncValidationStrategy):
             
             elif hasattr(response, "choices") and response.choices:
                 content = response.choices[0].message.content or ""
+            
+            # Handle string responses
+            elif isinstance(response, str):
+                content = response
             
             else:
                 return ValidationResult(

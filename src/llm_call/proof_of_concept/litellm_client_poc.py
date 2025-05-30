@@ -10,7 +10,6 @@ from typing import Dict, Any, Union, Optional, List
 from loguru import logger
 from dotenv import load_dotenv
 from pathlib import Path
-import wikipedia
 
 # --- CORE IMPORTS ---
 from llm_call.core.base import ValidationResult, AsyncValidationStrategy

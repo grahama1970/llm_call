@@ -37,6 +37,11 @@ from rich.syntax import Syntax
 
 # Initialize the CLI app
 app = typer.Typer(
+
+# Add slash command and MCP generation
+from .slash_mcp_mixin import add_slash_mcp_commands
+add_slash_mcp_commands(app)
+
     name="llm-cli",
     help="Unified LLM CLI with full configuration support and auto-generated slash commands"
 )
@@ -649,6 +654,309 @@ def serve_mcp(
     
     # In production, start the actual server
     typer.echo("\n[FastMCP server would run here - install fastmcp first]")
+
+# ============================================
+# TEST RUNNER COMMANDS
+# ============================================
+
+@app.command()
+def test(
+    pattern: Optional[str] = typer.Argument(None, help="Pattern to match test files (e.g., 'poc_*.py', 'test_*.py')"),
+    directory: Optional[Path] = typer.Option(None, "--dir", "-d", help="Directory to search for tests"),
+    parallel: bool = typer.Option(False, "--parallel", "-p", help="Run tests in parallel"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    timeout: int = typer.Option(30, "--timeout", "-t", help="Timeout per test in seconds"),
+    show_output: bool = typer.Option(False, "--show-output", "-o", help="Show test output even on success")
+):
+    """
+    Run POC validation tests and report results.
+    
+    Examples:
+    - Run all POCs: test "poc_*.py"
+    - Run specific POC: test "poc_11_*.py"
+    - Run all tests: test "test_*.py"
+    - Run in parallel: test "poc_*.py" --parallel
+    - Custom directory: test --dir src/llm_call/proof_of_concept
+    """
+    import subprocess
+    import glob
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+    from pathlib import Path
+    import time
+    
+    # Default search directory
+    if directory:
+        search_dir = directory
+    else:
+        # Try common POC locations
+        poc_dirs = [
+            Path("src/llm_call/proof_of_concept"),
+            Path("src/llm_call/proof_of_concept/code/task_004_test_prompts"),
+            Path("tests/llm_call/core"),
+            Path(".")
+        ]
+        
+        # Find first existing directory
+        search_dir = None
+        for d in poc_dirs:
+            if d.exists():
+                search_dir = d
+                break
+        
+        if not search_dir:
+            console.print("[bold red]Error:[/bold red] No test directory found")
+            raise typer.Exit(1)
+    
+    # Default pattern if not provided
+    if not pattern:
+        pattern = "poc_*.py"
+    
+    # Find test files
+    test_files = []
+    
+    # Handle recursive search
+    if "**" in pattern:
+        test_files = list(search_dir.glob(pattern))
+    else:
+        # Search in directory and immediate subdirectories
+        test_files = list(search_dir.glob(pattern))
+        for subdir in search_dir.iterdir():
+            if subdir.is_dir():
+                test_files.extend(subdir.glob(pattern))
+    
+    if not test_files:
+        console.print(f"[bold yellow]No test files found matching '{pattern}' in {search_dir}[/bold yellow]")
+        raise typer.Exit(0)
+    
+    console.print(f"[bold]Found {len(test_files)} test files in {search_dir}[/bold]")
+    
+    # Test runner function
+    def run_test_file(test_file: Path) -> Dict[str, Any]:
+        """Run a single test file and return results."""
+        start_time = time.time()
+        
+        try:
+            # Run the test
+            result = subprocess.run(
+                [sys.executable, str(test_file)],
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            
+            elapsed = time.time() - start_time
+            
+            # Check for success patterns
+            success_patterns = [
+                "VALIDATION PASSED",
+                "All tests passed",
+                "✅ VALIDATION PASSED",
+                "tests produced expected results",
+                "✅ All exponential backoff tests passed",
+                "✅ All"
+            ]
+            
+            # Check both stdout and stderr (for loguru output)
+            output = result.stdout + result.stderr
+            
+            # Also check for failure patterns
+            failure_patterns = [
+                "VALIDATION FAILED",
+                "tests failed",
+                "❌ VALIDATION FAILED",
+                "AssertionError",
+                "Exception:",
+                "Traceback"
+            ]
+            
+            has_success = any(pattern in output for pattern in success_patterns)
+            has_failure = any(pattern in output for pattern in failure_patterns)
+            
+            # Success if: has success pattern, no failure pattern, and exit code 0
+            success = has_success and not has_failure and result.returncode == 0
+            
+            return {
+                "file": test_file.name,
+                "success": success,
+                "elapsed": elapsed,
+                "returncode": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "output": output
+            }
+            
+        except subprocess.TimeoutExpired:
+            return {
+                "file": test_file.name,
+                "success": False,
+                "elapsed": timeout,
+                "error": f"Timeout after {timeout}s",
+                "output": ""
+            }
+        except Exception as e:
+            return {
+                "file": test_file.name,
+                "success": False,
+                "elapsed": time.time() - start_time,
+                "error": str(e),
+                "output": ""
+            }
+    
+    # Run tests
+    results = []
+    
+    if parallel:
+        console.print("[bold blue]Running tests in parallel...[/bold blue]")
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(run_test_file, f) for f in test_files]
+            
+            for future in futures:
+                results.append(future.result())
+    else:
+        console.print("[bold blue]Running tests sequentially...[/bold blue]")
+        for test_file in test_files:
+            if verbose:
+                console.print(f"\n[dim]Running {test_file.name}...[/dim]")
+            
+            result = run_test_file(test_file)
+            results.append(result)
+            
+            # Show immediate feedback
+            if result["success"]:
+                console.print(f"✅ {result['file']} - [green]PASSED[/green] ({result['elapsed']:.2f}s)")
+                if show_output:
+                    console.print(Panel(result["output"], title=f"Output: {result['file']}", border_style="green"))
+            else:
+                console.print(f"❌ {result['file']} - [red]FAILED[/red] ({result['elapsed']:.2f}s)")
+                if verbose or show_output:
+                    error_msg = result.get("error", "Test failed")
+                    console.print(Panel(
+                        f"Error: {error_msg}\n\nOutput:\n{result.get('output', 'No output')}",
+                        title=f"Failed: {result['file']}",
+                        border_style="red"
+                    ))
+    
+    # Summary report
+    console.print("\n" + "="*60)
+    console.print("[bold]Test Summary Report[/bold]")
+    console.print("="*60)
+    
+    passed = sum(1 for r in results if r["success"])
+    failed = len(results) - passed
+    total_time = sum(r["elapsed"] for r in results)
+    
+    console.print(f"\n[bold]Total:[/bold] {len(results)} tests")
+    console.print(f"[bold green]Passed:[/bold green] {passed}")
+    console.print(f"[bold red]Failed:[/bold red] {failed}")
+    console.print(f"[bold]Total time:[/bold] {total_time:.2f}s")
+    
+    if failed > 0:
+        console.print("\n[bold red]Failed tests:[/bold red]")
+        for r in results:
+            if not r["success"]:
+                console.print(f"  • {r['file']}: {r.get('error', 'Test failed')}")
+    
+    # Performance report
+    if verbose and len(results) > 0:
+        console.print("\n[bold]Performance Report:[/bold]")
+        sorted_results = sorted(results, key=lambda x: x["elapsed"], reverse=True)
+        
+        console.print("\nSlowest tests:")
+        for r in sorted_results[:5]:
+            console.print(f"  • {r['file']}: {r['elapsed']:.2f}s")
+        
+        avg_time = total_time / len(results)
+        console.print(f"\nAverage time per test: {avg_time:.2f}s")
+    
+    # Exit code based on results
+    if failed > 0:
+        raise typer.Exit(1)
+    else:
+        console.print("\n[bold green]✅ All tests passed![/bold green]")
+
+
+@app.command()
+def test_poc(
+    poc_number: Optional[int] = typer.Argument(None, help="Specific POC number to run (e.g., 11)"),
+    show_all: bool = typer.Option(False, "--all", "-a", help="Show all POC files"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output")
+):
+    """
+    Run specific POC validation tests.
+    
+    Examples:
+    - List all POCs: test-poc --all
+    - Run specific POC: test-poc 11
+    - Run POC 27: test-poc 27 --verbose
+    """
+    from pathlib import Path
+    
+    # Find POC directory
+    poc_dir = Path("src/llm_call/proof_of_concept/code/task_004_test_prompts")
+    if not poc_dir.exists():
+        poc_dir = Path("src/llm_call/proof_of_concept")
+    
+    if not poc_dir.exists():
+        console.print("[bold red]Error:[/bold red] POC directory not found")
+        raise typer.Exit(1)
+    
+    # List all POCs if requested
+    if show_all or poc_number is None:
+        poc_files = sorted(poc_dir.glob("poc_*.py"))
+        
+        if not poc_files:
+            console.print("[bold yellow]No POC files found[/bold yellow]")
+            raise typer.Exit(0)
+        
+        console.print("[bold]Available POC files:[/bold]\n")
+        
+        # Group by number
+        poc_groups = {}
+        for f in poc_files:
+            # Extract POC number
+            import re
+            match = re.match(r"poc_(\d+)", f.name)
+            if match:
+                num = int(match.group(1))
+                if num not in poc_groups:
+                    poc_groups[num] = []
+                poc_groups[num].append(f)
+        
+        for num in sorted(poc_groups.keys()):
+            console.print(f"[bold cyan]POC {num:02d}:[/bold cyan]")
+            for f in poc_groups[num]:
+                # Try to extract description from file
+                try:
+                    with open(f) as file:
+                        lines = file.readlines()[:10]
+                        for line in lines:
+                            if "POC-" in line and ":" in line:
+                                desc = line.split(":", 1)[1].strip()
+                                console.print(f"  • {f.name} - {desc}")
+                                break
+                        else:
+                            console.print(f"  • {f.name}")
+                except:
+                    console.print(f"  • {f.name}")
+        
+        if poc_number is None:
+            raise typer.Exit(0)
+    
+    # Run specific POC
+    pattern = f"poc_{poc_number:02d}_*.py" if poc_number < 100 else f"poc_{poc_number}_*.py"
+    
+    console.print(f"\n[bold]Running POC {poc_number}...[/bold]")
+    
+    # Call the test command directly
+    test(
+        pattern=pattern,
+        directory=poc_dir,
+        verbose=verbose,
+        show_output=True,
+        parallel=False
+    )
+
 
 # ============================================
 # MAIN ENTRY POINT

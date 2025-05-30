@@ -224,10 +224,31 @@ def validator(name: str):
     return decorator
 
 
-# Discover built-in validators on module load
+# Import validation module to load all validators
 try:
-    builtin_validators_path = Path(__file__).parent.parent / "validators"
+    from llm_call.core import validation
+    logger.info("Validation module loaded, validators should be registered")
+except Exception as e:
+    logger.warning(f"Failed to load validation module: {e}")
+
+# Also try to discover validators in the validation directory
+try:
+    builtin_validators_path = Path(__file__).parent / "validation" / "builtin_strategies"
     if builtin_validators_path.exists():
         registry.discover_strategies(builtin_validators_path)
+        logger.info(f"Discovered additional validators in {builtin_validators_path}")
 except Exception as e:
     logger.warning(f"Failed to discover built-in validators: {e}")
+
+# Create a VALIDATION_STRATEGIES dict for backward compatibility
+VALIDATION_STRATEGIES = {}
+def _update_strategies_dict():
+    """Update the VALIDATION_STRATEGIES dict with current registry contents."""
+    global VALIDATION_STRATEGIES
+    VALIDATION_STRATEGIES.clear()
+    for strategy_info in registry.list_all():
+        name = strategy_info['name']
+        VALIDATION_STRATEGIES[name] = registry._strategies.get(name)
+
+# Update on module load
+_update_strategies_dict()

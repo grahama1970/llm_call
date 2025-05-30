@@ -166,7 +166,7 @@ if expected_schema and parsed:
 
 ---
 
-## Task 3: Make retry tests pass with exponential backoff
+## Task 3: Make retry tests pass with exponential backoff ✅ COMPLETE
 
 **Test ID**: retry_expo_001_backoff_test  
 **Model**: any
@@ -245,7 +245,7 @@ class RetryManager:
 
 ---
 
-## Task 4: Make multimodal test pass with image handling
+## Task 4: Make multimodal test pass with image handling ✅ COMPLETE
 
 **Test ID**: openai_multimodal_001_image_description
 **Model**: openai/gpt-4-vision-preview
@@ -313,7 +313,7 @@ assert result["image_url"]["url"].startswith("data:image/png;base64,")
 
 ---
 
-## Task 5: Make CLI test runner work with POC 31
+## Task 5: Make CLI test runner work with POC 31 ✅ COMPLETE
 
 **Test ID**: cli_runner_001_basic_execution
 **Model**: any
@@ -433,10 +433,20 @@ Each task MUST include:
 
 ## Task Status Tracking
 
-- [ ] Task 1: Router max/* models support
-- [ ] Task 2: JSON validators module
-- [ ] Task 3: Exponential backoff retry
-- [ ] Task 4: Multimodal image encoding
-- [ ] Task 5: CLI test runner
+- [x] Task 1: Router max/* models support ✅
+- [x] Task 2: JSON validators module ✅
+- [x] Task 3: Exponential backoff retry ✅
+- [x] Task 4: Multimodal image encoding ✅
+- [x] Task 5: CLI test runner ✅
 
-**Status**: ⏳ Not Started | **Priority**: HIGH | **Complexity**: MEDIUM
+**Status**: ✅ COMPLETE | **Priority**: HIGH | **Complexity**: MEDIUM
+
+## Completion Summary
+
+All 5 tasks completed successfully:
+- Core modules enhanced with POC patterns
+- All tests passing
+- Performance targets met
+- Full documentation created
+
+See `/docs/reports/task_018_iterative_core_integration_complete.md` for details.

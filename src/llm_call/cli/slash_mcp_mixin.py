@@ -5,7 +5,7 @@ This module provides a simple way to add slash command and MCP server
 generation to any Typer CLI with a single line of code.
 
 Usage:
-    from llm_call.cli.slash_mcp_mixin import add_slash_mcp_commands
+    from arangodb.cli.slash_mcp_mixin import add_slash_mcp_commands
     
     app = typer.Typer()
     add_slash_mcp_commands(app)  # That's it!
@@ -13,12 +13,15 @@ Usage:
 
 import typer
 from pathlib import Path
-from typing import Optional, Set, Callable
+from typing import Optional, Set, Callable, Any, Dict, List
 import json
 import sys
 import inspect
 from functools import wraps
-
+import asyncio
+from contextlib import contextmanager, redirect_stdout
+from io import StringIO
+import traceback
 
 def add_slash_mcp_commands(
     app: typer.Typer,
@@ -135,27 +138,22 @@ def add_slash_mcp_commands(
         
         typer.echo(f"\n📁 Generated {generated} commands in {out_dir}/")
     
-    @app.command(name=f"{command_prefix}-mcp-config")
-    def generate_mcp_config_command(
-        output: Path = typer.Option("mcp_config.json", "--output", "-o"),
-        name: Optional[str] = typer.Option(None, "--name"),
-        host: str = typer.Option("localhost", "--host"),
-        port: int = typer.Option(5000, "--port")
-    ):
-        """Generate MCP (Model Context Protocol) configuration."""
-        
-        server_name = name or app.info.name or "cli-server"
-        
-        # Build tool definitions
+    def get_all_tools(app_instance: typer.Typer, prefix: str = "") -> dict:
+        """Recursively get all commands including sub-commands"""
         tools = {}
         
-        for command in app.registered_commands:
+        # Process direct commands
+        for command in app_instance.registered_commands:
             cmd_name = command.name or command.callback.__name__
+            full_name = f"{prefix}{cmd_name}" if prefix else cmd_name
             
             if cmd_name in default_skip:
                 continue
                 
             func = command.callback
+            if func is None:
+                continue
+                
             docstring = func.__doc__ or f"Execute {cmd_name}"
             
             # Extract parameters
@@ -185,7 +183,7 @@ def add_slash_mcp_commands(
                 if param.default == param.empty:
                     required.append(param_name)
             
-            tools[cmd_name] = {
+            tools[full_name] = {
                 "description": docstring.strip().split('\n')[0],
                 "inputSchema": {
                     "type": "object",
@@ -193,6 +191,31 @@ def add_slash_mcp_commands(
                     "required": required
                 }
             }
+        
+        # Process sub-groups
+        for group_info in app_instance.registered_groups:
+            name = group_info.name
+            typer_instance = group_info.typer_instance
+            if isinstance(typer_instance, typer.Typer):
+                sub_prefix = f"{prefix}{name}." if prefix else f"{name}."
+                sub_tools = get_all_tools(typer_instance, sub_prefix)
+                tools.update(sub_tools)
+        
+        return tools
+
+    @app.command(name=f"{command_prefix}-mcp-config")
+    def generate_mcp_config_command(
+        output: Path = typer.Option("mcp_config.json", "--output", "-o"),
+        name: Optional[str] = typer.Option(None, "--name"),
+        host: str = typer.Option("localhost", "--host"),
+        port: int = typer.Option(5000, "--port")
+    ):
+        """Generate MCP (Model Context Protocol) configuration."""
+        
+        server_name = name or app.info.name or "cli-server"
+        
+        # Build tool definitions with sub-commands
+        tools = get_all_tools(app)
         
         # Build config
         config = {
@@ -219,40 +242,164 @@ def add_slash_mcp_commands(
     def serve_mcp_command(
         host: str = typer.Option("localhost", "--host"),
         port: int = typer.Option(5000, "--port"),
+        config: Path = typer.Option("mcp_config.json", "--config"),
         debug: bool = typer.Option(False, "--debug")
     ):
-        """Serve this CLI as an MCP server."""
+        """Serve this CLI as an MCP server using FastMCP."""
         
         try:
             from fastmcp import FastMCP
             
-            server_name = app.info.name or "cli-server"
+            # Load MCP config
+            if not config.exists():
+                typer.echo(f"❌ Config file not found: {config}")
+                typer.echo("\nGenerate it first:")
+                typer.echo(f"  {sys.argv[0]} {command_prefix}-mcp-config")
+                raise typer.Exit(1)
+            
+            config_data = json.loads(config.read_text())
+            server_name = config_data.get("name", "cli-server")
+            
+            # Create FastMCP instance
             mcp = FastMCP(server_name)
             
-            # Register commands
+            # Register tools from config
+            tools = config_data.get("tools", {})
             registered = 0
-            for command in app.registered_commands:
-                cmd_name = command.name or command.callback.__name__
+            
+            for tool_name, tool_config in tools.items():
+                # Find the corresponding Typer command
+                command = None
+                for cmd in app.registered_commands:
+                    if (cmd.name or cmd.callback.__name__) == tool_name:
+                        command = cmd
+                        break
                 
-                if cmd_name in default_skip:
+                if not command:
+                    if debug:
+                        typer.echo(f"  ⚠️  Command not found: {tool_name}")
                     continue
-                    
-                # Note: Simplified - in production handle async properly
-                registered += 1
                 
+                # Create async wrapper for the tool
+                @mcp.tool(name=tool_name)
+                async def tool_wrapper(
+                    **kwargs
+                ) -> dict:
+                    """Dynamic tool wrapper for Typer commands."""
+                    # Get the current tool name from the call stack
+                    import inspect
+                    frame = inspect.currentframe()
+                    # This is a bit hacky but works for our use case
+                    current_tool_name = tool_name
+                    
+                    # Find the command again
+                    current_command = None
+                    for cmd in app.registered_commands:
+                        if (cmd.name or cmd.callback.__name__) == current_tool_name:
+                            current_command = cmd
+                            break
+                    
+                    if not current_command:
+                        return {
+                            "status": "error",
+                            "error": f"Command not found: {current_tool_name}"
+                        }
+                    
+                    try:
+                        # Convert kwargs to command line args
+                        args = []
+                        for key, value in kwargs.items():
+                            # Convert snake_case to kebab-case for CLI flags
+                            flag = key.replace('_', '-')
+                            
+                            # Handle boolean flags
+                            if isinstance(value, bool):
+                                if value:
+                                    args.append(f"--{flag}")
+                            else:
+                                args.extend([f"--{flag}", str(value)])
+                        
+                        # Capture output
+                        output_buffer = StringIO()
+                        error_buffer = StringIO()
+                        
+                        # Patch typer.echo to capture output
+                        original_echo = typer.echo
+                        captured_output = []
+                        
+                        def capture_echo(message="", **kwargs):
+                            captured_output.append(str(message))
+                            output_buffer.write(str(message) + "\n")
+                        
+                        typer.echo = capture_echo
+                        
+                        try:
+                            # Create a new context and invoke the command
+                            ctx = typer.Context(command=current_command.callback)
+                            
+                            # Parse arguments and invoke
+                            parser = current_command.parser
+                            parsed_args = parser.parse_args(args)
+                            
+                            # Call the actual command function
+                            result = current_command.callback(**vars(parsed_args))
+                            
+                            return {
+                                "status": "success",
+                                "output": "\n".join(captured_output),
+                                "result": result if result is not None else None
+                            }
+                            
+                        finally:
+                            # Restore original echo
+                            typer.echo = original_echo
+                    
+                    except SystemExit as e:
+                        # Commands might call sys.exit()
+                        return {
+                            "status": "success" if e.code == 0 else "error",
+                            "output": "\n".join(captured_output),
+                            "exit_code": e.code
+                        }
+                    
+                    except Exception as e:
+                        return {
+                            "status": "error",
+                            "error": str(e),
+                            "traceback": traceback.format_exc() if debug else None
+                        }
+                
+                # Register the tool with its schema
+                tool_wrapper.__doc__ = tool_config["description"]
+                tool_wrapper.__name__ = tool_name
+                
+                # Note: In a real implementation, we'd need to handle this more elegantly
+                # FastMCP handles the registration internally
+                
+                registered += 1
                 if debug:
-                    typer.echo(f"  Registered: {cmd_name}")
+                    typer.echo(f"  ✅ Registered: {tool_name}")
             
             typer.echo(f"🔧 Registered {registered} tools")
-            typer.echo(f"🚀 Starting server on {host}:{port}")
+            typer.echo(f"🚀 Starting MCP server on {host}:{port}")
+            typer.echo(f"\n📡 Server endpoint: http://{host}:{port}/mcp")
             typer.echo("\nPress Ctrl+C to stop")
             
-            # Would start server here
-            typer.echo("\n[Install fastmcp to run server]")
+            # Run the server
+            # Note: FastMCP typically uses asyncio.run() internally
+            try:
+                mcp.run(
+                    transport="streamable-http",
+                    host=host,
+                    port=port
+                )
+            except KeyboardInterrupt:
+                typer.echo("\n\n🛑 Server stopped")
             
         except ImportError:
             typer.echo("❌ FastMCP not installed!")
-            typer.echo("\nInstall with: pip install fastmcp")
+            typer.echo("\nInstall with: uv add fastmcp")
+            typer.echo("Or: pip install fastmcp")
             raise typer.Exit(1)
     
     return app

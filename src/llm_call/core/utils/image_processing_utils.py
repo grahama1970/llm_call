@@ -1,12 +1,60 @@
 import base64
 import hashlib
-from typing import Any, Dict, Optional # Added Optional
+from typing import Any, Dict, Optional, Tuple, Union
 import mimetypes
 from pathlib import Path
-from PIL import Image # Make sure PIL (Pillow) is installed
+from PIL import Image
 import os
+import time
 from loguru import logger
 import requests
+
+# Supported image formats with MIME types
+SUPPORTED_FORMATS = {
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'webp': 'image/webp',
+    'gif': 'image/gif'
+}
+
+# Size limits based on API documentation
+MAX_FILE_SIZE = 20 * 1024 * 1024  # 20MB
+MAX_RESOLUTION = (2048, 2048)
+
+
+def detect_image_format(image_path: Union[str, Path]) -> str:
+    """
+    Detect image format with multiple fallback methods.
+    
+    Returns:
+        Format string (e.g., 'png', 'jpeg') or 'unknown'
+    """
+    image_path = Path(image_path)
+    
+    # Try from extension first
+    ext = image_path.suffix.lower().lstrip('.')
+    if ext in SUPPORTED_FORMATS:
+        return ext
+    
+    # Try from MIME type
+    mime_type, _ = mimetypes.guess_type(str(image_path))
+    if mime_type:
+        for fmt, mime in SUPPORTED_FORMATS.items():
+            if mime == mime_type:
+                return fmt
+    
+    # Use PIL as fallback
+    try:
+        with Image.open(image_path) as img:
+            format_str = img.format.lower() if img.format else "unknown"
+            # Normalize jpeg/jpg
+            if format_str == "jpeg":
+                return "jpeg"
+            return format_str
+    except Exception:
+        return "unknown"
+
 
 # download_and_cache_image remains the same
 
@@ -221,3 +269,116 @@ def process_image_input(image_input_url_or_path: str, image_cache_and_output_dir
         except Exception as e:
             logger.exception(f"Unexpected error processing local image '{image_input_url_or_path}': {e}")
             return None
+
+
+def format_image_for_api(image_data: Dict[str, Any], api_type: str = "openai") -> Dict[str, Any]:
+    """
+    Format image data for specific API type.
+    
+    Args:
+        image_data: Dict with "type": "image_url" and "image_url": {"url": "..."}
+        api_type: API type (openai, anthropic, litellm)
+        
+    Returns:
+        Formatted image object for the specific API
+    """
+    if not image_data or "image_url" not in image_data:
+        return image_data
+    
+    url = image_data["image_url"]["url"]
+    
+    if api_type == "openai":
+        # OpenAI format (default)
+        return image_data
+    
+    elif api_type == "anthropic":
+        # Anthropic expects different format
+        if url.startswith("data:"):
+            # Extract base64 data from data URI
+            header, data = url.split(',', 1)
+            mime_type = header.split(':')[1].split(';')[0]
+            return {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": mime_type,
+                    "data": data
+                }
+            }
+        else:
+            # For URLs, Anthropic might need different handling
+            logger.warning(f"URL images for Anthropic API may need special handling: {url[:50]}...")
+            return image_data
+    
+    elif api_type == "litellm":
+        # LiteLLM standardized format
+        if "format" not in image_data["image_url"] and url.startswith("data:"):
+            # Extract MIME type from data URI
+            header = url.split(',')[0]
+            mime_type = header.split(':')[1].split(';')[0]
+            image_data["image_url"]["format"] = mime_type
+        return image_data
+    
+    else:
+        logger.warning(f"Unknown API type: {api_type}. Returning original format.")
+        return image_data
+
+
+def encode_image_with_metadata(image_path: Union[str, Path], encoding: str = "base64") -> Dict[str, Any]:
+    """
+    Encode image with detailed metadata (format, size, dimensions, encoding time).
+    Enhanced version with performance tracking from POC 11.
+    
+    Args:
+        image_path: Path to image file
+        encoding: Either "base64" or "url"
+        
+    Returns:
+        Dict with encoded image data and metadata
+    """
+    start_time = time.time()
+    image_path = Path(image_path)
+    
+    if not image_path.exists():
+        raise FileNotFoundError(f"Image not found: {image_path}")
+    
+    # Check file size
+    file_size = image_path.stat().st_size
+    if file_size > MAX_FILE_SIZE:
+        raise ValueError(f"Image too large: {file_size} bytes (max: {MAX_FILE_SIZE})")
+    
+    # Detect format
+    img_format = detect_image_format(image_path)
+    if img_format not in SUPPORTED_FORMATS and img_format != "unknown":
+        logger.warning(f"Unsupported format detected: {img_format}")
+    
+    # Get image dimensions
+    with Image.open(image_path) as img:
+        dimensions = img.size
+        if dimensions[0] > MAX_RESOLUTION[0] or dimensions[1] > MAX_RESOLUTION[1]:
+            logger.warning(f"Image exceeds max resolution: {dimensions} > {MAX_RESOLUTION}")
+    
+    result = {
+        "format": img_format.upper(),
+        "mime_type": SUPPORTED_FORMATS.get(img_format, f"image/{img_format}"),
+        "size_bytes": file_size,
+        "dimensions": dimensions
+    }
+    
+    if encoding == "base64":
+        # Use existing function for consistency
+        data_uri = convert_image_to_base64(str(image_path))
+        if data_uri:
+            result["encoded"] = data_uri
+            result["encoding"] = "base64"
+        else:
+            raise ValueError("Failed to encode image to base64")
+    elif encoding == "url":
+        # For local files, convert to file:// URL
+        result["encoded"] = image_path.absolute().as_uri()
+        result["encoding"] = "url"
+    else:
+        raise ValueError(f"Unsupported encoding: {encoding}")
+    
+    result["encoding_time_ms"] = (time.time() - start_time) * 1000
+    return result
