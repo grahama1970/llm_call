@@ -58,7 +58,7 @@ full = [
 ]"
 
 # 'dev' group is better under [project.optional-dependencies] for modern pip/uv
-# or use [tool.hatch.envs.default.features] if using Hatch environments extensively.
+# or use [tool.hatch.envs.default.features]" if using Hatch environments extensively.
 # Let's keep it under optional-dependencies for broader compatibility.
 dev = [
     "jupyter>=1.0.0",
@@ -123,7 +123,7 @@ include = [
 # Exclude can be useful too
 # exclude = []
 
-[tool.hatch.build.targets.wheel]
+[tool.hatch.build.targets.wheel]"
 # This tells Hatch where to find the actual package code for the wheel.
 # If your package `llm_call` is directly inside `src/`, this is correct.
 packages = ["src/llm_call"]"
@@ -137,5 +137,5 @@ line-length = 120
 select = ["E", "W", "F", "I", "UP", "C4", "B", "A", "RUF"]" # Example selections
 ignore = ["E501"]" # Ignore line too long if Ruff handles it
 
-[tool.ruff.lint.isort]
+[tool.ruff.lint.isort]"
 known-first-party = ["llm_call"]"
