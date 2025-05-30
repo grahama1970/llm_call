@@ -1,183 +1,201 @@
-# CLAUDE.md
+# LLM Call Test Suite
 
-## GLOBAL CODING & ORGANIZATION STANDARDS
+This directory contains the comprehensive test suite for the `llm_call` package. The test structure mirrors the `src/` directory for easy navigation and maintenance.
 
-> This document defines all non-negotiable standards for project structure, coding, validation, testing, and reporting. **Every agent and contributor must follow these guidelines before executing any task.**
-
----
-
-## 1. Project Structure & Directory Organization
+## Test Structure
 
 ```
-project_name/
-├── docs/
-│   ├── CHANGELOG.md
-│   ├── memory_bank/
-│   └── tasks/
-├── examples/
-├── pyproject.toml
-├── README.md
-├── src/
-│   └── project_name/
-├── tests/
-│   ├── fixtures/
-│   └── project_name/
-└── uv.lock
+tests/
+├── llm_call/
+│   ├── cli/               # CLI command tests
+│   ├── core/              # Core functionality tests
+│   │   ├── api/           # API endpoint tests
+│   │   ├── config/        # Configuration tests
+│   │   ├── providers/     # Provider-specific tests
+│   │   ├── utils/         # Utility function tests
+│   │   └── validation/    # Validation strategy tests
+│   ├── proof_of_concept/  # POC validation tests
+│   ├── rl_integration/    # RL integration tests (if applicable)
+│   └── tools/             # Tool integration tests
+├── fixtures/              # Test data and fixtures
+├── conftest.py           # Pytest configuration
+└── run_tests_with_report.py  # Test runner with reporting
 ```
 
-- **Package Management:** Always use `uv` with `pyproject.toml`; never use `pip`.
-- **Project Activation:**
-    1. `cd` into the project directory
-    2. `source .venv/bin/activate`
-    3. Install dependencies if necessary: `uv sync --active`
-- **Mirror Structure:**  
-  The `examples/` and `tests/` directories **must exactly mirror the structure of the `src/` directory**. This is best practice for clarity and easy navigation.
-- **Documentation:** All comprehensive docs go in `docs/`.
+## Running Tests
 
----
+### Run All Tests
+```bash
+# From project root
+cd /home/graham/workspace/experiments/claude_max_proxy
+source .venv/bin/activate
 
-## 2. Cleanup & Organization Protocol
+# Run all tests with pytest
+pytest tests/ -v
 
-- **Stray Source Files:** Move misplaced source files into their correct subdirectories within `src/`.
-- **Log Files:** Place all logs in a dedicated `logs/` directory or archive them if obsolete.
-- **Test Files:** All test files must be in the mirrored `tests/` directory. Move any test files found elsewhere.
-- **Debug/Iteration Files:** Remove or archive any temporary, debug, or iteration files not required.
-- **Unorganized Markdown/JSON Files:** Move unorganized or temporary `.md` or `.json` files to a logical location or `archive/`.
-- **General Review:** Ensure all files are in logical, organized locations. Move obsolete or unnecessary files to the `archive/` directory.
+# Run with coverage
+pytest tests/ --cov=src/llm_call --cov-report=html
 
-**Goal:**  
-A clean, well-organized, and clutter-free project directory, with all files—especially source, test, log, and Markdown files—stored in their appropriate locations.
-
----
-
-## 3. Test Directory Standards
-
-- The `tests/` directory **must be an exact mirror of the `src/` directory** for best practice and easier navigation.
-- Remove or archive obsolete or iteration tests.
-- Update `tests/README.md` to clearly explain how to run all tests and verify project integrity after updates.
-
----
-
-## 4. Security & Permissions
-
-**If running in `--dangerously-skip-permissions` mode:**
-
-- Claude is strictly forbidden from executing `rm -rf` or any destructive command without explicit user permission.
-- Never assume permission for destructive actions, even in skip-permissions mode.
-
-**Version Control Discipline in Dangerous Mode:**
-
-- After every file change, immediately stage and commit the change in Git.
-- Commit messages must clearly indicate *Bypassing Permissions* mode and specify the file(s) and action(s), e.g.
-- This ensures all risky operations are tracked and can be reverted.
-
-**Summary:**  
-Every file change in dangerous mode must be committed with a clear, descriptive message, ensuring project safety and traceability.
-
----
-
-## 5. Module Requirements
-
-- **Max 500 lines of code per file**
-- **Documentation Header:** Every file must include:
-    - Purpose
-    - Links to third-party docs
-    - Sample input and expected output
-- **Validation Function:** Every file needs a `main` block that tests with real data
-- **File Location:** No stray files in project root; organize as follows:
-    - Python modules: `src/project_name/`
-    - Tests: `tests/`
-    - Docs: `src/project_name/docs/`
-    - Examples: `src/project_name/examples/`
-
----
-
-## 6. Architecture Principles
-
-- **Function-First:** Prefer simple functions; use classes only when necessary
-- **Async:** Never use `asyncio.run()` inside functions—only in main blocks
-- **Type Hints:** Use type hints for all function parameters and return values; prefer concrete types
-- **No Conditional Imports:** Import required packages directly; handle errors during usage, not import
-
----
-
-## 7. Validation & Testing
-
-- **Real Data:** Always test with actual data, never fake inputs
-- **No Mocking:** Never mock core functionality; MagicMock is strictly forbidden for core tests
-- **Assertions:** Use meaningful assertions against specific expected values
-- **No unconditional "All Tests Passed" messages:** Only report success if all tests genuinely pass
-- **Track All Failures:** Always track and report all validation failures; never stop at the first failure
-- **External Research:** If a function fails validation 3+ times, use external research tools and document findings in comments
-
----
-
-## 8. Automated Markdown Test Report Requirements
-
-After every full test suite run, **automatically generate a well-formatted Markdown report** summarizing the results. Save the report in the `@docs/reports/` directory.
-
-**Report Table Requirements:**
-- Table columns:
-    - Test Name
-    - Short Description
-    - Actual Result (no hallucinated or placeholder data)
-    - Pass/Fail Status
-    - Additional relevant fields (e.g., Duration, Error Message, Timestamp)
-- The table **must be clear, easy to read, and use valid Markdown table syntax.**
-- Each report file must have a unique name (timestamp or test run ID).
-- **No mocking of core functionality is allowed.** All results must reflect actual test outcomes.
-
-**Example Table Format:**
-```
-| Test Name      | Description                 | Result        | Status | Duration | Timestamp           | Error Message      |
-|----------------|----------------------------|---------------|--------|----------|---------------------|--------------------|
-| LoginTest      | User login with valid creds | Success       | Pass   | 1.2s     | 2025-05-25 17:50:00 |                    |
-| PaymentTest    | Payment with expired card   | Card Expired  | Fail   | 0.8s     | 2025-05-25 17:50:01 | Card expired error |
-| DataExportTest | Export user data to CSV     | File exported | Pass   | 2.0s     | 2025-05-25 17:50:03 |                    |
+# Run with detailed output
+pytest tests/ -v -s
 ```
 
-**Instructions:**
-- Ensure the report is generated and saved automatically after every full test suite run.
-- Place the generated `.md` file in `@docs/reports/`.
+### Run Specific Test Categories
 
----
+#### CLI Tests
+```bash
+pytest tests/llm_call/cli/ -v
+```
 
-## 9. Validation Output Requirements
+#### Core Tests
+```bash
+pytest tests/llm_call/core/ -v
+```
 
-- Never print "All Tests Passed" or similar unless **all** tests actually passed
-- Always verify actual results against expected results before printing any success message
-- Always test multiple cases, including normal, edge, and error cases
-- Always track all failures and report them at the end—don't stop at first failure
-- All validation functions must exit with code 1 if any tests fail; exit with code 0 only if all tests pass
-- Always include the count of failed tests and total tests in the output
-- Always include details of each failure when tests fail
-- Never include irrelevant test output that could hide failures
-- Structure validation to explicitly check each test case
-- Never claim success if search returns 0 results—this is always a failure
-- Highlight critical test results with visual markers (emojis, headers, or formatting)
-- Clearly separate test output from implementation details with visual dividers
-- Summarize test results at the top or bottom of output with PASS/FAIL counts
-- Ensure critical information (errors, results, success/failure) is immediately visible
-- Never bury important results in verbose logs—highlight them explicitly
+#### Validation Tests
+```bash
+pytest tests/llm_call/core/validation/ -v
+```
 
----
+### Run Tests with Custom Reporter
+```bash
+# This generates a detailed HTML report
+python tests/run_tests_with_report.py
+```
 
-## 10. Compliance Checklist
+### Run Individual Test Files
+```bash
+# Example: Run router tests
+pytest tests/llm_call/core/test_router.py -v
 
-Before completing a task, verify that your work adheres to **all** standards in this document. Confirm each of the following:
+# Example: Run validation integration tests
+pytest tests/llm_call/core/test_validation_integration.py -v
+```
 
-1. All files have appropriate documentation headers
-2. Each module has a working validation function with real data
-3. Type hints are used properly and consistently
-4. All functionality is validated before addressing linting issues
-5. No `asyncio.run()` inside functions
-6. Code is under the 500-line limit per file
-7. If function failed validation 3+ times, external research was conducted and documented
-8. Validation functions never include unconditional "All Tests Passed" messages
-9. Validation functions only report success if explicitly verified by comparing actual to expected results
-10. Validation functions track and report all failures, not just the first one encountered
-11. Validation output includes count of failed tests out of total tests run
-12. Search results must return actual data—0 results is always a failure that must be investigated
+## Test Categories
 
-If any standard is not met, fix the issue before submitting the work.
+### Unit Tests
+- `test_router.py` - Router logic and model selection
+- `test_retry_exponential.py` - Retry logic with exponential backoff
+- `test_json_validators.py` - JSON validation strategies
+- `test_image_encoding_enhancements.py` - Image processing utilities
 
+### Integration Tests
+- `test_core_integration.py` - Full core functionality integration
+- `test_validation_integration.py` - Validation framework integration
+- `test_llm_integration.py` - LLM provider integration
+- `test_unified_integration.py` - End-to-end system tests
+
+### Real LLM Tests
+These tests use actual LLM calls and require API keys:
+- `test_ai_validator_real_llm.py` - AI validator with real LLMs
+- `test_claude_proxy_real.py` - Claude proxy integration
+- `test_mcp_features_real.py` - MCP features with real calls
+
+**Note**: Real LLM tests are expensive and should be run selectively:
+```bash
+# Skip real LLM tests
+pytest tests/ -v -m "not real_llm"
+
+# Run only real LLM tests
+pytest tests/ -v -m "real_llm"
+```
+
+## Test Fixtures
+
+Test fixtures are located in `tests/fixtures/`:
+- `user_prompts.jsonl` - Sample user prompts for testing
+- `user_prompts_extended.jsonl` - Extended prompt dataset
+
+## Important Testing Guidelines
+
+1. **No Mocking Core Functionality**: Tests should use real implementations, not mocks
+2. **Real Data Validation**: Tests must verify actual outputs against expected results
+3. **100% Non-Mocked Tests**: All tests should pass without mocking core LLM functionality
+4. **Mirror Source Structure**: Test directory structure must exactly mirror `src/`
+
+## Continuous Integration
+
+Before pushing changes:
+```bash
+# Run full test suite
+pytest tests/ -v
+
+# Check for any broken tests
+pytest tests/ --tb=short
+
+# Verify no tests are skipped
+pytest tests/ -v | grep -i skip
+```
+
+## Adding New Tests
+
+When adding new functionality:
+1. Create test file in the corresponding test directory
+2. Follow naming convention: `test_<module_name>.py`
+3. Include both positive and negative test cases
+4. Test edge cases and error conditions
+5. Use real data, not synthetic test data
+
+Example test structure:
+```python
+import pytest
+from llm_call.core.module import function_to_test
+
+class TestModuleName:
+    def test_normal_operation(self):
+        """Test normal expected behavior."""
+        result = function_to_test("input")
+        assert result == "expected_output"
+    
+    def test_edge_case(self):
+        """Test edge cases and boundaries."""
+        result = function_to_test("")
+        assert result is None
+    
+    def test_error_handling(self):
+        """Test error conditions."""
+        with pytest.raises(ValueError):
+            function_to_test(None)
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Import Errors**: Ensure PYTHONPATH is set correctly
+   ```bash
+   export PYTHONPATH=./src:$PYTHONPATH
+   ```
+
+2. **API Key Errors**: Set required environment variables
+   ```bash
+   source .env  # Load from .env file
+   ```
+
+3. **Test Discovery Issues**: Ensure all test directories have `__init__.py` files
+
+### Debug Tips
+
+- Use `-s` flag to see print statements: `pytest tests/ -v -s`
+- Use `--pdb` to drop into debugger on failure: `pytest tests/ --pdb`
+- Run specific test: `pytest tests/path/to/test.py::TestClass::test_method`
+
+## Performance Benchmarks
+
+Run performance tests:
+```bash
+pytest tests/ -v --benchmark-only
+```
+
+## Test Coverage Goals
+
+- Minimum coverage: 80%
+- Critical paths: 100%
+- Error handling: 100%
+- Integration points: 90%
+
+Check current coverage:
+```bash
+pytest tests/ --cov=src/llm_call --cov-report=term-missing
+```

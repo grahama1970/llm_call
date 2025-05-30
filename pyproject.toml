@@ -2,11 +2,11 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[project]"
+[project]
 name = "llm_call"
 version = "1.0.0" # Consider incrementing as you make changes, e.g., "1.0.1" or "1.1.0"
 description = "Experiment with Litellm and Claude, including a local proxy for Claude CLI."
-authors = [{ name = "Graham Anderson", email = "graham@grahama.co" }]"
+authors = [{ name = "Graham Anderson", email = "graham@grahama.co" }]
 requires-python = "~=3.10" # Your PoC script uses f-strings with assignment expressions (:=) if any, so >=3.8 is fine. 3.10 is good.
 readme = "README.md"
 license = "GPL-3.0-or-later" # Ensure this aligns with any licenses of dependencies if distributing.
@@ -17,7 +17,7 @@ keywords = [
     "proxy",
     "fastapi",
     "anthropic"
-]"
+]
 # Core dependencies needed for your llm_call package AND the PoC script
 dependencies = [
     "litellm>=1.34.20", # Assuming you need it for the non-proxy path, check latest stable
@@ -26,8 +26,8 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "tenacity>=8.2.3", # From your PoC's llm_call.py
     "fastapi>=0.110.0", # Needed for the PoC's embedded server & core/api.py
-    "uvicorn[standard]"
-    "claude-test-reporter @ git+https://github.com/grahama1970/claude-test-reporter.git@main",>=0.29.0", # Needed to run FastAPI (standard includes common extras)
+    "uvicorn[standard]>=0.29.0", # Needed to run FastAPI (standard includes common extras)
+    "claude-test-reporter @ git+https://github.com/grahama1970/claude-test-reporter.git@main",
     "deepmerge>=1.1.0", # From your PoC's llm_call.py
     "pydantic>=2.0", # From your PoC's llm_call.py and core/base.py
     # Dependencies below were from your original list, review if all are strictly needed
@@ -47,7 +47,7 @@ dependencies = [
     "wikipedia-api>=0.8.1",
 ]
 
-[project.optional-dependencies]"
+[project.optional-dependencies]
 # These seem to be for document processing, separate from core LLM calls. Good as optional.
 full = [
     "mammoth>=1.7.0", # Updated to avoid <2 if 1.9 has issues
@@ -55,10 +55,10 @@ full = [
     "python-pptx>=0.6.23",
     "ebooklib>=0.18",
     "weasyprint>=61.0", # Updated version
-]"
+]
 
-# 'dev' group is better under [project.optional-dependencies]" for modern pip/uv
-# or use [tool.hatch.envs.default.features]" if using Hatch environments extensively.
+# 'dev' group is better under [project.optional-dependencies] for modern pip/uv
+# or use [tool.hatch.envs.default.features] if using Hatch environments extensively.
 # Let's keep it under optional-dependencies for broader compatibility.
 dev = [
     "jupyter>=1.0.0",
@@ -76,12 +76,12 @@ dev = [
     "latex2mathml>=3.77.0",
     "playwright>=1.42.0", # Updated version
     "ruff", # For linting and formatting
-]"
+]
 
-[project.urls]"
+[project.urls]
 Repository = "https://github.com/grahama1970/llm_call"
 
-[project.scripts]"
+[project.scripts]
 # Main CLI entry point
 llm-cli = "llm_call.cli.main:app"
 
@@ -96,22 +96,22 @@ llm-call-claude-cli-poc = "llm_call.proof_of_concept.claude_cli_via_api_poc:asyn
 
 
 # --- Hatch Specific Configuration ---
-[tool.hatch.version]"
+[tool.hatch.version]
 path = "src/llm_call/__init__.py" # Assuming you put __version__ = "1.0.0" in src/llm_call/__init__.py
 
-[tool.hatch.envs.default]"
+[tool.hatch.envs.default]
 # This tells hatch that if someone activates the default dev env,
 # the 'dev' optional dependencies should be installed.
-features = ["dev"]"
+features = ["dev"]
 # This is crucial for Hatch to correctly set up sys.path in its managed environments
 # so that `import llm_call` works when `llm_call` is in `src/`.
 python = "python" # Or your specific Python version like "3.10"
-[tool.hatch.envs.default.scripts]"
+[tool.hatch.envs.default.scripts]
 # Example of a custom script you can run with `hatch run default:test-claude-poc`
 test-claude-poc = "python src/llm_call/proof_of_concept/claude_cli_via_api_poc.py"
 
 
-[tool.hatch.build.targets.sdist]"
+[tool.hatch.build.targets.sdist]
 # For sdist, you usually include everything in src, plus other files.
 include = [
     "/src", # Include the whole src directory
@@ -119,23 +119,23 @@ include = [
     "README.md",
     "LICENSE", # If you have a license file
     # Add other top-level files or directories needed for sdist
-]"
+]
 # Exclude can be useful too
 # exclude = []
 
-[tool.hatch.build.targets.wheel]"
+[tool.hatch.build.targets.wheel]
 # This tells Hatch where to find the actual package code for the wheel.
 # If your package `llm_call` is directly inside `src/`, this is correct.
-packages = ["src/llm_call"]"
+packages = ["src/llm_call"]
 # If you had other data files within src/llm_call to include in the wheel:
-# [tool.hatch.build.targets.wheel.force-include]"
+# [tool.hatch.build.targets.wheel.force-include]
 # "src/llm_call/data/" = "llm_call/data"
 
 # --- Ruff Linter/Formatter Configuration (Example) ---
-[tool.ruff]"
+[tool.ruff]
 line-length = 120
-select = ["E", "W", "F", "I", "UP", "C4", "B", "A", "RUF"]" # Example selections
-ignore = ["E501"]" # Ignore line too long if Ruff handles it
+select = ["E", "W", "F", "I", "UP", "C4", "B", "A", "RUF"] # Example selections
+ignore = ["E501"] # Ignore line too long if Ruff handles it
 
-[tool.ruff.lint.isort]"
-known-first-party = ["llm_call"]"
+[tool.ruff.lint.isort]
+known-first-party = ["llm_call"]
