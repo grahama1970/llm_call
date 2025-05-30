@@ -37,14 +37,13 @@ from rich.syntax import Syntax
 
 # Initialize the CLI app
 app = typer.Typer(
+    name="llm-cli",
+    help="Unified LLM CLI with full configuration support and auto-generated slash commands"
+)
 
 # Add slash command and MCP generation
 from .slash_mcp_mixin import add_slash_mcp_commands
 add_slash_mcp_commands(app)
-
-    name="llm-cli",
-    help="Unified LLM CLI with full configuration support and auto-generated slash commands"
-)
 
 console = Console()
 

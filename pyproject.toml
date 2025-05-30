@@ -30,6 +30,13 @@ dependencies = [
     "claude-test-reporter @ git+https://github.com/grahama1970/claude-test-reporter.git@main",
     "deepmerge>=1.1.0", # From your PoC's llm_call.py
     "pydantic>=2.0", # From your PoC's llm_call.py and core/base.py
+    "pydantic-settings>=2.0.0", # For settings management in llm_call
+    # Additional dependencies from llm_call package
+    "rapidfuzz>=3.0.0", # For fuzzy string matching in llm_call
+    "rich>=13.0.0", # For CLI output formatting
+    "beautifulsoup4>=4.12.0", # For HTML parsing
+    "aiofiles>=23.0.0", # For async file operations
+    "mcp>=0.1.0", # For MCP protocol support
     # Dependencies below were from your original list, review if all are strictly needed
     # by the llm_call package itself, or if some are for other experiments.
     "google-cloud-aiplatform>=1.38.1", # If you use Vertex AI via LiteLLM
@@ -96,6 +103,9 @@ llm-call-claude-cli-poc = "llm_call.proof_of_concept.claude_cli_via_api_poc:asyn
 
 
 # --- Hatch Specific Configuration ---
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.version]
 path = "src/llm_call/__init__.py" # Assuming you put __version__ = "1.0.0" in src/llm_call/__init__.py
 
