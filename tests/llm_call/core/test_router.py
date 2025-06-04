@@ -53,6 +53,32 @@ def test_claude_max_variants():
         print(f"✅ {model} -> {provider_class.__name__}")
 
 
+def test_claude_model_aliases():
+    """Test new Claude model aliases (opus, sonnet) with max/ prefix."""
+    test_variants = [
+        ("max/opus", "Opus alias"),
+        ("max/sonnet", "Sonnet alias"),
+        ("max/claude-opus-4-20250514", "Full Opus model name"),
+        ("max/claude-sonnet-4-20250514", "Full Sonnet model name"),
+        ("max/", "Default to opus when no model specified"),
+        ("MAX/OPUS", "Case insensitive routing"),
+        ("Max/Sonnet", "Mixed case routing")
+    ]
+    
+    for model, description in test_variants:
+        test_config = {
+            "model": model,
+            "messages": [{"role": "user", "content": "test"}]
+        }
+        
+        provider_class, api_params = resolve_route(test_config)
+        
+        assert provider_class == ClaudeCLIProxyProvider, f"{model} ({description}) should route to Claude proxy"
+        assert api_params["model"] == model, f"Model should be preserved: {model}"
+        
+        print(f"✅ {model} ({description}) -> {provider_class.__name__}")
+
+
 def test_non_max_model_routing():
     """Test that non-max models route to LiteLLM."""
     test_models = [
@@ -143,6 +169,7 @@ if __name__ == "__main__":
     try:
         test_max_model_routing()
         test_claude_max_variants()
+        test_claude_model_aliases()
         test_non_max_model_routing()
         test_question_to_messages_conversion()
         test_response_format_handling()

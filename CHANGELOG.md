@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2025-05-31
+
+#### Multi-Model Conversational Collaboration
+- **Conversation State Persistence** - Major feature addition enabling fluid multi-model collaboration
+  - Implemented SQLite-based conversation manager (`src/llm_call/core/conversation_manager.py`)
+  - Tracks conversations across multiple model calls with full context preservation
+  - Support for ArangoDB as alternative storage backend
+  - Conversation search, retrieval, and history management
+  
+- **Conversational Delegator Tool** (`src/llm_call/tools/conversational_delegator.py`)
+  - CLI tool for starting and continuing multi-model conversations
+  - Maintains conversation state between Claude, Gemini, GPT-4, etc.
+  - Supports viewing conversation history
+  - Enables true iterative model collaboration
+  
+- **MCP Conversational Tools** (`src/llm_call/mcp_conversational_tools.py`)
+  - Tool definitions for Claude Desktop/Code integration
+  - Functions: start_collaboration, delegate_to_model, continue_conversation
+  - Conversation summary and context-aware analysis tools
+
+### Changed - 2025-05-31
+
+- **README.md** - Complete rewrite for LLM agent clarity
+  - Now explicitly identifies as a SPOKE module for claude-module-communicator HUB
+  - Clear API documentation for orchestrator integration
+  - Detailed examples of multi-model collaboration workflows
+  - Current configuration status with working models
+  - Integration points clearly documented
+
+### Documentation - 2025-05-31
+
+- Created `docs/reports/ACTUAL_FUNCTIONALITY_STATUS.md`
+  - Clarifies "verified" vs "actually working" functionality
+  - Shows what works with current API keys
+  - Explains fluid collaboration capabilities
+- Created `docs/reports/claude_capabilities_comprehensive_verification_report.md`
+  - Detailed verification of all three requested capabilities
+  - Skeptical analysis as requested
+- Updated file structure documentation to reflect new components
+
 ### Added - 2025-05-23
 
 #### POC Retry Manager Implementation

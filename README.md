@@ -1,377 +1,291 @@
-# LLM Call - Universal LLM Interface with Smart Validation
+# Claude Max Proxy - Universal LLM Interface with Multi-Model Collaboration
 
-A flexible command-line tool and library that lets you interact with any LLM through a unified interface. Whether you prefer typing commands, using it within Claude Desktop/Code as an MCP tool, or integrating it into your Python scripts - llm_call handles it all with built-in response validation.
+A flexible command-line tool and library that enables **fluid conversational collaboration between different LLM models**. Claude can delegate to Gemini for large documents, GPT-4 for specific tasks, or any other model - all while maintaining conversation context.
 
-## 🎯 Why LLM Call?
+**This is a SPOKE module** - it makes LLM calls and is orchestrated by the HUB ([claude-module-communicator](https://github.com/grahamwetzler/claude-module-communicator)).
 
-**The Problem**: Different LLMs have different APIs, different strengths, and different failure modes. You want to use the best model for each task without rewriting code or manually validating responses.
+## 🎯 Core Capabilities
 
-**The Solution**: LLM Call provides a single interface that:
-- Works with any LLM provider (OpenAI, Anthropic, Ollama, etc.)
-- Validates responses to ensure quality and format compliance  
-- Retries intelligently when responses don't meet your requirements
-- Integrates seamlessly into your workflow (CLI, MCP, or Python)
+### 1. Multi-Model Collaboration with Conversation State
+- **Persistent Conversations**: SQLite-based conversation tracking across model calls
+- **Context Preservation**: Models can build on each other's responses
+- **Fluid Delegation**: Claude can delegate to Gemini (1M context), GPT-4, or any model
+- **Iterative Refinement**: Models can refine and improve each other's outputs
 
-## 🚀 Quick Start
+### 2. Intelligent Routing
+- **Automatic Model Selection**: Routes to appropriate provider based on task
+- **Context-Aware Delegation**: Automatically delegates when context limits are exceeded
+- **Provider Support**: OpenAI, Anthropic, Google Vertex AI, Ollama, and more
 
-### Installation
-```bash
-pip install llm-call
-# or
-uv add llm-call
+### 3. Response Validation
+- **16 Built-in Validators**: JSON, code, schema, length, regex, and more
+- **Retry with Feedback**: Automatically retries with validation feedback
+- **Custom Validators**: Easy to add domain-specific validation
+
+## 🚀 Quick Start for LLM Agents
+
+### For Module Communicator Integration
+
+```python
+# Import the conversational delegator
+from llm_call.tools.conversational_delegator import conversational_delegate
+
+# Start a new collaboration
+result = await conversational_delegate(
+    model="vertex_ai/gemini-1.5-pro",
+    prompt="Analyze this 500k character document...",
+    conversation_name="large-doc-analysis",
+    temperature=0.0
+)
+conversation_id = result["conversation_id"]
+
+# Continue the conversation with a different model
+result = await conversational_delegate(
+    model="gpt-4",
+    prompt="What patterns did you identify?",
+    conversation_id=conversation_id
+)
 ```
 
-### Create a Convenient Alias (Optional)
-Since `python -m llm_call.cli.main` is verbose, you can create an alias:
-```bash
-# Add to your ~/.bashrc or ~/.zshrc
-alias llm='python -m llm_call.cli.main'
+### Environment Setup
 
-# Then you can use:
-llm ask "What is Python?"
+```bash
+# Required: Set PYTHONPATH and load environment
+export PYTHONPATH=./src
+source .venv/bin/activate
+
+# The system loads API keys from .env file
+# Required keys:
+# - OPENAI_API_KEY (for GPT models)
+# - GOOGLE_APPLICATION_CREDENTIALS (for Vertex AI/Gemini)
+# - ANTHROPIC_API_KEY (for Claude API calls - currently empty)
 ```
 
-### Three Ways to Use LLM Call
+## 📚 Key Features for Orchestration
 
-#### 1. Command Line Interface
+### 1. Conversation Management
+
+```python
+from llm_call.core.conversation_manager import ConversationManager
+
+# Initialize manager (uses SQLite by default)
+manager = ConversationManager()
+
+# Create a conversation
+conv_id = await manager.create_conversation(
+    "Research Task",
+    metadata={"models": ["claude", "gemini", "gpt-4"]}
+)
+
+# Add messages
+await manager.add_message(conv_id, "user", "Research quantum computing")
+await manager.add_message(conv_id, "assistant", "I'll search for recent papers...", model="claude")
+
+# Retrieve conversation for next model
+messages = await manager.get_conversation_for_llm(conv_id)
+```
+
+### 2. Model Routing Examples
+
+```python
+from llm_call.core.caller import make_llm_request
+
+# Route to specific models
+config = {
+    "model": "vertex_ai/gemini-1.5-pro",  # For 1M context
+    "messages": messages,
+    "temperature": 0.0
+}
+response = await make_llm_request(config)
+
+# Available routes:
+# - "max/opus" -> Claude CLI
+# - "vertex_ai/gemini-1.5-pro" -> Gemini with 1M context
+# - "gpt-4", "gpt-3.5-turbo" -> OpenAI
+# - "ollama/llama3.2" -> Local models
+```
+
+### 3. Validation Integration
+
+```python
+from llm_call.core.strategies import get_validator
+
+# Use validators to ensure quality
+validators = [
+    get_validator("json"),           # Ensure valid JSON
+    get_validator("length", min_length=100),  # Minimum length
+    get_validator("field_present", required_fields=["summary", "key_points"])
+]
+
+# Apply validation in requests
+config["validation_strategies"] = validators
+```
+
+## 🔧 Command Line Tools
+
+### Conversational Delegator
+
+```bash
+# Start a new conversation
+python src/llm_call/tools/conversational_delegator.py \
+  --model "vertex_ai/gemini-1.5-pro" \
+  --prompt "Analyze this large document" \
+  --conversation-name "doc-analysis"
+
+# Continue existing conversation
+python src/llm_call/tools/conversational_delegator.py \
+  --model "gpt-4" \
+  --prompt "Summarize the key findings" \
+  --conversation-id "uuid-from-previous"
+
+# View conversation history
+python src/llm_call/tools/conversational_delegator.py \
+  --show-history \
+  --conversation-id "uuid"
+```
+
+### Basic LLM Calls
+
 ```bash
 # Quick question
-python -m llm_call.cli.main ask "What are the main differences between Python and JavaScript?"
+python -m llm_call.cli.main ask "What is Python?"
 
 # Interactive chat
 python -m llm_call.cli.main chat --model gpt-4
 
-# Using configuration files
-python -m llm_call.cli.main call config.json --prompt "Analyze this data"
+# With validation
+python -m llm_call.cli.main ask "Generate a SQL query" --validate sql --validate sql_safe
 ```
 
-#### 2. MCP Tool in Claude Desktop/Code
-```bash
-# Generate MCP configuration
-python -m llm_call.cli.main generate-mcp-config
+## 🔌 Integration Points
 
-# Add to Claude's MCP settings
-# Now you can use any model directly from Claude!
-```
+### For Claude Module Communicator (HUB)
 
-#### 3. Python Library
+This module exposes:
+1. **Conversational Delegation**: Multi-model conversations with state
+2. **Model Routing**: Access to all configured LLM providers
+3. **Validation Services**: Ensure response quality
+4. **MCP Tools**: For Claude Desktop integration
+
+### API Endpoints
+
 ```python
-from llm_call import ask
+# Main entry points for orchestration
+from llm_call.core.caller import make_llm_request
+from llm_call.tools.conversational_delegator import conversational_delegate
+from llm_call.core.conversation_manager import ConversationManager
+from llm_call.core.strategies import get_validator
+```
 
-response = await ask(
-    "Generate a Python function to calculate fibonacci numbers",
-    model="gpt-4",
-    validate=["code", "python"]
+### Database Integration
+
+- **SQLite**: `logs/conversations.db` for conversation state
+- **ArangoDB**: Optional integration at `/home/graham/workspace/experiments/arangodb`
+
+## 📊 Current Configuration Status
+
+### Working Models (with API keys in .env):
+- ✅ **Vertex AI/Gemini 1.5 Pro**: 1M context window
+- ✅ **OpenAI GPT-4/GPT-3.5**: General purpose
+- ✅ **Claude CLI**: Via `max/` prefix
+- ✅ **Perplexity**: For web search (via MCP)
+- ❌ **Anthropic API**: Key missing in .env (line 15)
+
+### Validation Strategies Available:
+- Basic: `response_not_empty`, `json_string`, `not_empty`
+- Advanced: `length`, `regex`, `contains`, `code`, `field_present`
+- Specialized: `python`, `json`, `sql`, `openapi_spec`, `sql_safe`
+- AI-based: `ai_contradiction_check`, `agent_task` (require LLM)
+
+## 🎯 Typical Workflows
+
+### Large Document Analysis (Claude → Gemini)
+```python
+# 1. Claude receives 500k char document (exceeds 200k limit)
+# 2. Delegate to Gemini
+result = await conversational_delegate(
+    model="vertex_ai/gemini-1.5-pro",
+    prompt=f"Analyze this document: {large_document}",
+    conversation_name="large-doc-analysis"
+)
+
+# 3. Claude continues with summary
+result = await conversational_delegate(
+    model="max/opus",
+    prompt="Based on the analysis, what are the key actionable insights?",
+    conversation_id=result["conversation_id"]
 )
 ```
 
-## 📚 Use Case Scenarios
-
-### Scenario 1: Code Generation with Validation
-**Goal**: Generate Python code that actually works
-
-**CLI Command**:
-```bash
-python -m llm_call.cli.main ask "Write a Python function to merge two sorted lists" \
-  --model gpt-4 \
-  --validate code \
-  --validate python
-```
-
-**In Claude Desktop** (via MCP):
-```
-Please write a Python function to merge two sorted lists. 
-Make sure it handles edge cases and includes type hints.
-```
-*Behind the scenes: Claude uses llm_call to validate the response is proper Python code*
-
-### Scenario 2: Structured Data Extraction
-**Goal**: Extract structured information from text and ensure it's valid JSON
-
-**CLI Command**:
-```bash
-python -m llm_call.cli.main ask "Extract the key points from this article as JSON" \
-  --model claude-3-opus \
-  --json \
-  --validate json \
-  --system "You are a precise data extractor"
-```
-
-**Configuration File** (`extract_config.json`):
-```json
-{
-  "model": "claude-3-opus",
-  "system": "You are a precise data extractor",
-  "response_format": {"type": "json_object"},
-  "validation": [
-    {"type": "json"},
-    {"type": "schema", "schema": {
-      "type": "object",
-      "properties": {
-        "key_points": {"type": "array"},
-        "summary": {"type": "string"}
-      }
-    }}
-  ]
-}
-```
-
-### Scenario 3: Multi-Model Comparison
-**Goal**: Get responses from different models for comparison
-
-**Shell Script**:
-```bash
-#!/bin/bash
-PROMPT="Explain quantum computing to a 10-year-old"
-
-echo "=== GPT-4 ==="
-python -m llm_call.cli.main ask "$PROMPT" --model gpt-4
-
-echo -e "\n=== Claude ==="
-python -m llm_call.cli.main ask "$PROMPT" --model claude-3-opus
-
-echo -e "\n=== Local Llama ==="
-python -m llm_call.cli.main ask "$PROMPT" --model ollama/llama3.2
-```
-
-### Scenario 4: Validated API Documentation
-**Goal**: Generate OpenAPI documentation that's guaranteed to be valid
-
-**Python Integration**:
+### Multi-Model Research (Claude → Perplexity → GPT-4)
 ```python
-from llm_call import call_llm
+# 1. Start research task
+conv_id = await manager.create_conversation("Research: Quantum Computing 2024")
 
-config = {
-    "model": "gpt-4",
-    "messages": [{
-        "role": "system", 
-        "content": "You are an API documentation expert. Generate valid OpenAPI 3.0 specs."
-    }, {
-        "role": "user",
-        "content": "Create OpenAPI spec for a user authentication API"
-    }],
-    "response_format": {"type": "json_object"},
-    "validation": [
-        {"type": "json"},
-        {"type": "openapi_spec"}
-    ],
-    "retry_config": {
-        "max_attempts": 3,
-        "validation_feedback": True
-    }
-}
-
-result = await call_llm(config)
+# 2. Web search via Perplexity
+# 3. Paper analysis via Gemini
+# 4. Synthesis via GPT-4
+# All maintaining conversation context
 ```
 
-### Scenario 5: Research Assistant with Web Access
-**Goal**: Research a topic using multiple sources
+## 🚀 Installation
 
-**Interactive Chat Session**:
 ```bash
-python -m llm_call.cli.main chat --model gpt-4 --system "You are a research assistant with web access"
+# Clone repository
+git clone https://github.com/yourusername/claude_max_proxy.git
+cd claude_max_proxy
 
-You: What are the latest developments in quantum computing in 2024?
-Assistant: I'll research the latest developments in quantum computing for 2024...
-You: Focus on practical applications
-Assistant: Let me narrow down to practical applications...
+# Setup environment
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+
+# Configure API keys in .env
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
-### Scenario 6: Advanced Code Analysis with Conversational Validation
-**Goal**: Analyze complex codebases with a specialized model that validates its own reasoning
+## 📋 File Structure
 
-**Interactive Session**:
-```bash
-python -m llm_call.cli.main chat --model anthropic/max
-
-You: I need help understanding this legacy codebase. It has a complex 
-     authentication system spread across multiple files.
-
-Assistant: I'll analyze your codebase systematically. Let me start by examining 
-          the authentication flow. Can you show me the main entry point?
-
-You: The auth starts in src/auth/manager.py but it calls into 
-     src/security/validators.py and src/database/user_store.py
-
-Assistant: I'll trace through this authentication flow for you. Let me analyze 
-          each component:
-          
-          1. First, examining the manager.py to understand the orchestration...
-          2. Now checking how validators.py handles credential validation...
-          3. Looking at user_store.py for the persistence layer...
-          
-          [Detailed analysis with code snippets and explanations]
-          
-          I notice a potential security issue in the password hashing - 
-          would you like me to explain and suggest a fix?
-
-You: Yes, and make sure the fix is compatible with the existing database
-
-Assistant: Let me design a backwards-compatible security improvement. I'll:
-          1. Create a migration strategy for existing password hashes
-          2. Implement stronger hashing while maintaining compatibility
-          3. Validate that the solution won't break existing user logins
-          
-          [Provides validated, tested code with migration plan]
+```
+claude_max_proxy/
+├── src/llm_call/
+│   ├── core/
+│   │   ├── caller.py              # Main LLM request handler
+│   │   ├── conversation_manager.py # Conversation state persistence
+│   │   ├── router.py              # Model routing logic
+│   │   └── validation/            # Validation strategies
+│   ├── tools/
+│   │   ├── llm_call_delegator.py  # Basic delegation tool
+│   │   └── conversational_delegator.py # Stateful conversations
+│   └── cli/
+│       └── main.py                # CLI interface
+├── logs/
+│   └── conversations.db           # SQLite conversation storage
+└── .env                          # API keys and configuration
 ```
 
-**What Makes This Special**: 
-- The model (`anthropic/max`) has access to sophisticated code analysis capabilities
-- It validates its own suggestions through conversational reasoning
-- Complex multi-file understanding with context retention
-- Proactive security analysis and backwards-compatible solutions
+## 🔒 Security Notes
 
-## 🛠️ Key Features
+- API keys are loaded from `.env` via `load_dotenv()`
+- Never commit `.env` file
+- Use environment-specific configurations
+- Validate all LLM responses before use
 
-### Model Flexibility
-- **Any Provider**: OpenAI, Anthropic, Google, Ollama, Groq, etc.
-- **Smart Routing**: Automatically routes to the right provider
-- **Local Models**: Full support for Ollama and local LLMs
-- **Custom Endpoints**: Configure your own API endpoints
+## 🤝 Integration with Claude Module Communicator
 
-### Validation Power
-- **Built-in Validators**: JSON, code, length, regex, custom
-- **Retry Logic**: Automatic retry with validation feedback
-- **Schema Validation**: Ensure responses match your data structure
-- **Language-Specific**: Validate Python, JavaScript, SQL, etc.
+As a SPOKE module, this integrates with the HUB by:
+1. Accepting orchestration commands via the conversational delegator
+2. Maintaining conversation state across multiple model calls
+3. Providing validation feedback to the orchestrator
+4. Exposing all LLM capabilities through a unified interface
 
-### Integration Options
-- **CLI**: Full-featured command-line interface
-- **MCP**: Use any model seamlessly within Claude
-- **Python API**: Async/sync support for applications
-- **Config Files**: JSON/YAML configuration for complex setups
-
-## 🎯 Advanced Usage
-
-### Custom Validation
-```python
-from llm_call import register_validator
-
-@register_validator("sql_safe")
-def validate_sql_safety(response: str, context: dict) -> bool:
-    dangerous_keywords = ["DROP", "DELETE", "TRUNCATE"]
-    return not any(keyword in response.upper() for keyword in dangerous_keywords)
-
-# Use it
-response = await ask(
-    "Generate a SQL query to find top customers",
-    model="gpt-4",
-    validate=["sql", "sql_safe"]
-)
-```
-
-### Model Routing Patterns
-```bash
-# Local models for sensitive data
-python -m llm_call.cli.main ask "Summarize this confidential document" --model ollama/llama3.2
-
-# Powerful models for complex tasks  
-python -m llm_call.cli.main ask "Solve this differential equation" --model gpt-4
-
-# Fast models for simple tasks
-python -m llm_call.cli.main ask "Format this date" --model gpt-3.5-turbo
-
-# Specialized models (wink wink 😉)
-python -m llm_call.cli.main ask "Debug this complex codebase" --model anthropic/max
-```
-
-### Conversation Context in Claude
-When using llm_call as an MCP tool in Claude, you get the best of both worlds:
-- Claude's excellent conversational interface
-- Access to any LLM model for specialized tasks
-- Automatic validation of all responses
-- Seamless integration that feels native
-
-**Example Claude Conversation**:
-```
-You: Can you help me create a data pipeline that processes CSV files?
-
-Claude: I'll help you create a data pipeline for CSV processing. Let me design
-this using the best model for code generation.
-
-[Behind the scenes: Uses llm_call with gpt-4 + code validation]
-
-Here's a complete data pipeline implementation:
-[Validated, working code appears here]
-
-You: Can you make it handle large files more efficiently?
-
-Claude: I'll optimize it for large file processing using streaming:
-[Updated, validated code with streaming support]
-```
-
-## 📋 Command Reference
-
-### Core Commands
-- `ask` - Single question/prompt
-- `chat` - Interactive conversation  
-- `call` - Use configuration file
-- `models` - List available models
-- `validators` - Show validation strategies
-- `config-example` - Generate example config
-
-### Generation Commands
-- `generate-claude` - Create Claude slash commands
-- `generate-mcp-config` - Generate MCP configuration
-- `serve-mcp` - Run as MCP server
-
-### Testing Commands
-- `test` - Run validation tests
-- `test-poc` - Test proof of concepts
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-# Optional API keys for different providers
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-GROQ_API_KEY=gsk_...
-
-# Default model selection
-LLM_DEFAULT_MODEL=gpt-4
-LLM_FALLBACK_MODEL=gpt-3.5-turbo
-```
-
-### Example Configuration File
-```yaml
-model: gpt-4
-temperature: 0.7
-max_tokens: 2000
-messages:
-  - role: system
-    content: You are a helpful coding assistant
-  - role: user  
-    content: "{{ prompt }}"  # Filled from CLI
-validation:
-  - type: code
-    language: python
-  - type: length
-    min: 100
-retry_config:
-  max_attempts: 3
-  backoff_factor: 2.0
-```
-
-## 🚀 Getting Started
-
-1. **Install**: `pip install llm-call`
-2. **Set API Keys**: Add your LLM provider API keys
-3. **Test It**: `python -m llm_call.cli.main ask "Hello, which model are you?"`
-4. **Explore**: Try different models and validation strategies
-
-## 🤝 Contributing
-
-We welcome contributions! Key areas:
-- Additional validation strategies
-- New LLM provider integrations  
-- MCP feature enhancements
-- Documentation improvements
-
-## 📄 License
-
-GPL-3.0-or-later
+The HUB can use this module to:
+- Delegate tasks to appropriate models based on requirements
+- Maintain complex multi-model conversations
+- Ensure response quality through validation
+- Handle model-specific limitations (context windows, capabilities)
 
 ---
 
-*LLM Call - Because every LLM has its strengths, and you should be able to use them all.*
+*Claude Max Proxy - Enabling fluid collaboration between AI models*

@@ -30,7 +30,8 @@ def execute_claude_cli(
     target_dir: Path,
     claude_exe_path: Path,
     timeout: int = 120,
-    mcp_config: Optional[Dict[str, Any]] = None
+    mcp_config: Optional[Dict[str, Any]] = None,
+    model_name: Optional[str] = None
 ) -> Optional[str]:
     """
     Execute Claude CLI and capture response.
@@ -70,6 +71,29 @@ def execute_claude_cli(
             logger.error(f"[Claude Executor] Failed to write MCP config: {e}")
             return f"Failed to write MCP configuration: {e}"
     
+    # Parse model name from max/ prefix if provided
+    claude_model_spec = None
+    if model_name and model_name.lower().startswith("max/"):
+        # Extract the part after "max/"
+        model_suffix = model_name[4:]  # Skip "max/"
+        if model_suffix:
+            # Map common aliases or use as-is
+            if model_suffix.lower() == "opus":
+                claude_model_spec = "opus"
+            elif model_suffix.lower() == "sonnet":
+                claude_model_spec = "sonnet"
+            elif model_suffix.startswith("claude-"):
+                # Full model names like claude-opus-4-20250514
+                claude_model_spec = model_suffix
+            else:
+                # Try to use as-is (could be other valid model names)
+                claude_model_spec = model_suffix
+                logger.warning(f"[Claude Executor] Using unrecognized model spec: {model_suffix}")
+        else:
+            # Default to opus if no model specified after max/
+            claude_model_spec = "opus"
+            logger.info("[Claude Executor] No model specified after max/, defaulting to opus")
+    
     # Construct command (from POC)
     cmd_list = [
         str(claude_exe_path),
@@ -78,6 +102,11 @@ def execute_claude_cli(
         "--output-format", "stream-json",
         "--verbose"  # Added from POC based on previous CLI error
     ]
+    
+    # Add model flag if specified
+    if claude_model_spec:
+        cmd_list.extend(["--model", claude_model_spec])
+        logger.info(f"[Claude Executor] Using model: {claude_model_spec}")
     
     logger.info(f"[Claude Executor] Executing in CWD '{target_dir}': {' '.join(shlex.quote(c) for c in cmd_list)}")
     

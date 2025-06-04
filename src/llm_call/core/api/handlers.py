@@ -76,7 +76,8 @@ async def chat_completions_endpoint(request: Request):
         system_prompt_content=system_message_content,
         target_dir=settings.claude_proxy.workspace_dir,
         claude_exe_path=Path(settings.claude_proxy.cli_path),
-        mcp_config=mcp_config
+        mcp_config=mcp_config,
+        model_name=model_requested_by_client
     )
     
     # Handle error responses
