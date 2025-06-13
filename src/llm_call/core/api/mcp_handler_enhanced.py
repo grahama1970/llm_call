@@ -1,19 +1,22 @@
 """
-Enhanced MCP Handler for better integration with the MCP server
-Extends the existing MCPHandler with additional functionality
-"""
 import os
 import json
 import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import shutil
+Module: mcp_handler_enhanced.py
+Description: API handlers and endpoints for mcp handler enhanced
+Description: API handlers and endpoints for mcp handler enhanced
 
 from .mcp_handler import MCPHandler
 
 
 class MCPHandlerEnhanced(MCPHandler):
     """Enhanced MCP handler with additional features for the MCP server"""
+"""
+Enhanced MCP Handler for better integration with the MCP server
+Extends the existing MCPHandler with additional functionality
     
     def __init__(self):
         super().__init__()

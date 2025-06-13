@@ -24,7 +24,7 @@ After thoroughly reviewing the README.md against the actual implementation, I've
 - Anthropic models via LiteLLM
 - Google models via LiteLLM
 - Ollama local models
-- Claude Max proxy (`max/*` models)
+- LLM Call proxy (`max/*` models)
 - Multimodal support
 
 ### Validation System (✅ Working)
@@ -65,7 +65,7 @@ response = await ask(
 
 **README Shows:**
 ```bash
-pip install llm-call
+uv add llm-call
 ```
 
 **Reality:**

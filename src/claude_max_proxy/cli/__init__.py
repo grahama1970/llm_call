@@ -1,1 +1,0 @@
-"""Claude Max Proxy CLI package."""

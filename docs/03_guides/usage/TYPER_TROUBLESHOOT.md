@@ -32,7 +32,7 @@ Absolutely understandable—Typer is designed to make CLIs easier, but its flexi
   ```
   mycli = "my_package.cli:app"
   ```
-- After installing (`pip install -e .`), you can run `mycli` from anywhere.
+- After installing (`uv add -e .`), you can run `mycli` from anywhere.
 
 ### 4. **Help and Usability**
 - Typer auto-generates help and usage from your function signatures and docstrings.

@@ -1,5 +1,7 @@
 """
 MCP Tool definitions for conversational multi-model collaboration.
+Module: mcp_conversational_tools.py
+Description: Functions for mcp conversational tools operations
 
 These tools enable Claude Desktop/Code to maintain conversation state
 while delegating between different models.
@@ -306,7 +308,7 @@ EXAMPLE_CLAUDE_CONFIG = """
     "llm-collaboration": {
       "command": "python",
       "args": [
-        "/home/graham/workspace/experiments/claude_max_proxy/src/llm_call/tools/mcp_tool_handler.py"
+        "/home/graham/workspace/experiments/llm_call/src/llm_call/tools/mcp_tool_handler.py"
       ]
     }
   }

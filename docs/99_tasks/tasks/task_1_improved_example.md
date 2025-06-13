@@ -130,7 +130,7 @@ curl http://localhost:8080/health
 ### Connection Error
 ```bash
 # Proxy not running. Start it:
-cd /home/graham/workspace/experiments/claude_max_proxy/
+cd /home/graham/workspace/experiments/llm_call/
 docker-compose up -d
 
 # Or run directly:

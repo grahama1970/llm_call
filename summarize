@@ -1,0 +1,11 @@
+#\!/bin/bash
+# Simple wrapper for llm_call summarization
+
+# Activate virtual environment if not already activated
+if [[ -z "$VIRTUAL_ENV" ]]; then
+    source .venv/bin/activate
+fi
+
+# Run summarization with all arguments passed through
+python -m llm_call.cli.main summarize "$@"
+EOF < /dev/null

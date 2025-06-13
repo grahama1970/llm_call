@@ -1,5 +1,7 @@
 """
 JSON validation strategies for LLM responses.
+Module: json_validators.py
+Description: Implementation of json validators functionality
 
 This module provides validators for extracting and validating JSON from various
 response formats including markdown code blocks and mixed content.

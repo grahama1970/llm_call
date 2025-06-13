@@ -1,4 +1,5 @@
 """Example of integrating RL provider selection into existing LLMClient"""
+Module: integration_example.py
 
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 class RLEnhancedLLMClient:
     """
     Example LLM Client with RL-based provider selection
-    This shows how to integrate RL into the existing claude_max_proxy
+    This shows how to integrate RL into the existing llm_call
     """
     
     def __init__(self, 

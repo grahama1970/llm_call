@@ -1,4 +1,5 @@
 """Strategy registry and loader for validation strategies.
+Module: strategies.py
 
 This module provides a pluggable system for validation strategies.
 """

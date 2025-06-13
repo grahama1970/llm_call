@@ -1,5 +1,7 @@
 """
 Enhanced Tree-Sitter utilities for GitGit repository analysis.
+Module: tree_sitter_utils.py
+Description: Utility functions and helpers for tree sitter utils
 
 This module provides comprehensive code metadata extraction using Tree-Sitter.
 It supports a wide range of programming languages and extracts detailed function and

@@ -1,4 +1,5 @@
 """LLM-based summarization for GitGet repository analysis.
+Module: summarization.py
 
 This module provides functionality for generating summaries of repository content
 using Large Language Models. It handles the interaction with LLM APIs, processes
@@ -97,8 +98,8 @@ def llm_summarize(
         None (writes summary to file)
         
     Raises:
-        FileNotFoundError: If the digest file doesn't exist
-        ValidationError: If LLM output can't be parsed as a valid RepoSummary
+        FileNotFoundError: If the digest file doesn't exist'
+        ValidationError: If LLM output can't be parsed as a valid RepoSummary'
         
     Example:
         ```python
@@ -175,7 +176,7 @@ def llm_summarize(
             config = {
                 "model": model,
                 "temperature": 0.7,
-                "context_limit_threshold": 6000,  # Handle larger context since we're using Gemini
+                "context_limit_threshold": 6000,  # Handle larger context since we're using Gemini'
                 "chunk_size": 5500,               # Larger chunks for repository digest
                 "overlap_size": 3,                # Slightly more overlap for better continuity
                 "final_summary_prompt": final_summary_prompt,

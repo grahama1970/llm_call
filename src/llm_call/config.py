@@ -1,4 +1,7 @@
-"""Configuration constants for LLM Call module."""
+"""
+Module: config.py
+Description: Configuration constants for LLM Call module - Configuration management and settings
+"""
 
 import os
 

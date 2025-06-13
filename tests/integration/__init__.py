@@ -1,0 +1,1 @@
+"""Integration tests - tests that verify component integration with real services."""

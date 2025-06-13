@@ -1,4 +1,5 @@
 """Base classes and protocols for LLM validation.
+Module: base.py
 
 This module defines the core interfaces for the validation system.
 """

@@ -1,3 +1,23 @@
+"""
+Module: db_manager.py
+Description: Functions for db manager operations
+
+External Dependencies:
+- sqlite3: [Documentation URL]
+- loguru: [Documentation URL]
+- : [Documentation URL]
+- claude_comms: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 # src/claude_comms/inter_module_communicator/core/db_manager.py
 """
 Core database management functions for handling task progress and details
@@ -353,11 +373,11 @@ if __name__ == "__main__":
 
     # Final validation result
     if all_validation_failures:
-        logger.error(f"❌ VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
+        logger.error(f" VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
         for i, failure in enumerate(all_validation_failures):
             logger.error(f"  Failure {i+1}: {failure}")
         sys.exit(1)
     else:
-        logger.info(f"✅ VALIDATION PASSED - All {total_tests} tests produced expected results for db_manager.py.")
+        logger.info(f" VALIDATION PASSED - All {total_tests} tests produced expected results for db_manager.py.")
         logger.info("Module is validated and formal tests can now be written.")
         sys.exit(0)

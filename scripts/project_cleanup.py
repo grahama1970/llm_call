@@ -1,3 +1,19 @@
+"""
+Module: project_cleanup.py
+
+External Dependencies:
+- loguru: https://loguru.readthedocs.io/
+
+Sample Input:
+>>> # See function docstrings for specific examples
+
+Expected Output:
+>>> # See function docstrings for expected results
+
+Example Usage:
+>>> # Import and use as needed based on module functionality
+"""
+
 #!/usr/bin/env python3
 """
 Project cleanup and organization tool.
@@ -333,16 +349,16 @@ def cleanup(
         logger.error(f"Not a Python project (no pyproject.toml): {project_root}")
         sys.exit(1)
     
-    logger.info(f"🧹 Starting project cleanup for: {project_root}")
+    logger.info(f" Starting project cleanup for: {project_root}")
     
     cleaner = ProjectCleaner(project_root)
     actions = cleaner.scan_for_cleanup()
     
     if not actions:
-        logger.success("✅ Project is already clean - no actions needed")
+        logger.success(" Project is already clean - no actions needed")
         return
     
-    logger.info(f"📋 Found {len(actions)} cleanup actions")
+    logger.info(f" Found {len(actions)} cleanup actions")
     
     # Group actions by type for reporting
     action_groups = {}
@@ -360,13 +376,13 @@ def cleanup(
     
     # Report results
     if dry_run:
-        logger.info("🔍 DRY RUN COMPLETE - No files were modified")
+        logger.info(" DRY RUN COMPLETE - No files were modified")
         logger.info("Run with --execute to perform actual cleanup")
     else:
-        logger.success(f"✅ CLEANUP COMPLETE")
-        logger.info(f"  📁 {stats['moved']} files moved")
-        logger.info(f"  🗑️  {stats['deleted']} files/directories deleted")
-        logger.info(f"  ➕ {stats['created']} directories created")
+        logger.success(f" CLEANUP COMPLETE")
+        logger.info(f"   {stats['moved']} files moved")
+        logger.info(f"  ️  {stats['deleted']} files/directories deleted")
+        logger.info(f"   {stats['created']} directories created")
         if stats['errors'] > 0:
             logger.warning(f"  ⚠️  {stats['errors']} errors occurred")
 
@@ -378,22 +394,22 @@ def schedule_cron():
     cron_example = """
 # Add to crontab with: crontab -e
 # Run project cleanup weekly on Sundays at 2 AM
-0 2 * * 0 cd /path/to/claude_max_proxy && /home/user/.local/bin/uv run scripts/project_cleanup.py --execute
+0 2 * * 0 cd /path/to/llm_call && /home/user/.local/bin/uv run scripts/project_cleanup.py --execute
 
 # Run dry-run daily at 6 AM (for monitoring)
-0 6 * * * cd /path/to/claude_max_proxy && /home/user/.local/bin/uv run scripts/project_cleanup.py --dry-run >> /var/log/project_cleanup.log 2>&1
+0 6 * * * cd /path/to/llm_call && /home/user/.local/bin/uv run scripts/project_cleanup.py --dry-run >> /var/log/project_cleanup.log 2>&1
 """
     
-    logger.info("📅 Example cron configuration for periodic cleanup:")
+    logger.info(" Example cron configuration for periodic cleanup:")
     print(cron_example)
     
-    logger.info("🔧 Setup steps:")
-    logger.info("1. Replace /path/to/claude_max_proxy with actual project path")
+    logger.info(" Setup steps:")
+    logger.info("1. Replace /path/to/llm_call with actual project path")
     logger.info("2. Replace /home/user/.local/bin/uv with actual uv path (find with: which uv)")
     logger.info("3. Add to crontab: crontab -e")
     logger.info("4. Monitor logs for any issues")
     
-    logger.info("💡 Recommended schedule:")
+    logger.info(" Recommended schedule:")
     logger.info("  - Weekly execution for actual cleanup")
     logger.info("  - Daily dry-run for monitoring file organization")
 
@@ -467,12 +483,12 @@ if __name__ == "__main__":
     
     # Final validation result
     if all_validation_failures:
-        print(f"❌ VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
+        print(f" VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
         for failure in all_validation_failures:
             print(f"  - {failure}")
         sys.exit(1)
     else:
-        print(f"✅ VALIDATION PASSED - All {total_tests} tests produced expected results")
+        print(f" VALIDATION PASSED - All {total_tests} tests produced expected results")
         print("Project cleanup script is validated and ready for use")
         
         # Run the CLI app

@@ -46,7 +46,7 @@ async def route_request(self, model: str, messages: List[Dict], **kwargs) -> Dic
 
 **Run Command**:
 ```bash
-cd /home/graham/workspace/experiments/claude_max_proxy
+cd /home/graham/workspace/experiments/llm_call
 python -m pytest tests/llm_call/core/test_router.py -k test_max_model_routing -v
 ```
 

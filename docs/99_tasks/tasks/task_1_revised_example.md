@@ -52,7 +52,7 @@ async def test_max_text_001():
         # Common fixes:
         if "Connection" in str(e):
             print("\nFIX: Start Claude proxy:")
-            print("  cd /home/graham/workspace/experiments/claude_max_proxy/")
+            print("  cd /home/graham/workspace/experiments/llm_call/")
             print("  docker-compose up -d")
         elif "Timeout" in str(e):
             print("\nFIX: Increase timeout or check proxy logs:")

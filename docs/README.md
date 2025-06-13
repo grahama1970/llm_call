@@ -1,4 +1,4 @@
-# claude_max_proxy Documentation
+# llm_call Documentation
 
 > 📚 Organized documentation for easy navigation
 

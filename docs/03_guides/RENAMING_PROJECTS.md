@@ -37,7 +37,7 @@ cp -r OLD_PROJECT_NAME OLD_PROJECT_NAME-backup-$(date +%Y%m%d_%H%M%S)
 ```bash
 # Save current environment state
 cd OLD_PROJECT_NAME
-uv pip freeze > ../pre-rename-dependencies.txt
+uv uv uv pip freeze > ../pre-rename-dependencies.txt
 find . -name "*.pyc" -delete  # Clean Python cache files
 find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 ```
@@ -119,7 +119,7 @@ source .venv/bin/activate  # On Linux/Mac
 ### 3. Reinstall in Editable Mode
 ```bash
 # Install the project with new name
-uv pip install -e .
+uv uv add -e .
 
 # Verify installation
 python -c "import NEW_PACKAGE_NAME; print('Success!')"
@@ -248,8 +248,8 @@ sudo apt install gh
 ```bash
 # Make sure pyproject.toml has the correct name
 # Reinstall:
-uv pip uninstall OLD_PACKAGE_NAME
-uv pip install -e .
+uv uv remove OLD_PACKAGE_NAME
+uv uv add -e .
 ```
 
 ### Issue: Git Remote Errors

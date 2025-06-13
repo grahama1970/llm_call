@@ -1,5 +1,6 @@
 """
 MCP (Multi-Claude Protocol) configuration handler.
+Module: mcp_handler.py
 
 This module manages dynamic MCP configuration for Claude CLI tools.
 
@@ -170,21 +171,21 @@ if __name__ == "__main__":
         
         # Write default config
         mcp_path = write_mcp_config(tmppath)
-        print(f"✅ Wrote default MCP config to: {mcp_path}")
+        print(f" Wrote default MCP config to: {mcp_path}")
         
         # Check it exists
         assert mcp_path.exists()
         with open(mcp_path) as f:
             config = json.load(f)
-        print(f"✅ Config has {len(config.get('mcpServers', {}))} tools")
+        print(f" Config has {len(config.get('mcpServers', {}))} tools")
         
         # Remove it
         remove_mcp_config(mcp_path)
         assert not mcp_path.exists()
-        print("✅ Successfully removed MCP config")
+        print(" Successfully removed MCP config")
     
     # Test selective config
     selective = build_selective_mcp_config(["perplexity-ask", "github"])
-    print(f"✅ Built selective config with tools: {list(selective['mcpServers'].keys())}")
+    print(f" Built selective config with tools: {list(selective['mcpServers'].keys())}")
     
-    print("\n✅ All MCP handler tests passed!")
+    print("\n All MCP handler tests passed!")

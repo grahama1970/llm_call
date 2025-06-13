@@ -1,4 +1,4 @@
-# Claude Max Proxy - Actual Functionality Status
+# LLM Call - Actual Functionality Status
 
 **Generated:** 2025-05-31 16:24  
 **Purpose:** Clarify what "verified" means vs what's actually working for fluid conversational collaboration
@@ -37,7 +37,7 @@
        "llm-collaboration": {
          "command": "python",
          "args": [
-           "/home/graham/workspace/experiments/claude_max_proxy/src/llm_call/tools/conversational_delegator.py"
+           "/home/graham/workspace/experiments/llm_call/src/llm_call/tools/conversational_delegator.py"
          ]
        }
      }
@@ -114,7 +114,7 @@ python conversational_delegator.py --model "max/opus" \
 
 3. **For RL-based model selection:**
    ```bash
-   pip install git+file:///home/graham/workspace/experiments/rl_commons
+   uv add git+file:///home/graham/workspace/experiments/rl_commons
    ```
 
 ### 🎯 Bottom Line:

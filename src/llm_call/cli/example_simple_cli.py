@@ -1,3 +1,21 @@
+"""
+Module: example_simple_cli.py
+Description: Functions for example simple cli operations
+
+External Dependencies:
+- typer: [Documentation URL]
+- llm_call: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 #!/usr/bin/env python3
 """
 Example: Simple CLI with one-line slash/MCP integration
@@ -20,11 +38,11 @@ def analyze(
     recursive: bool = typer.Option(True, "--recursive", "-r")
 ):
     """Analyze files in the given path."""
-    typer.echo(f"🔍 Analyzing: {path}")
+    typer.echo(f" Analyzing: {path}")
     if recursive:
         typer.echo("   Including subdirectories")
     # Your analysis logic here
-    typer.echo("✅ Analysis complete!")
+    typer.echo(" Analysis complete!")
 
 @app.command()
 def convert(
@@ -32,9 +50,9 @@ def convert(
     output_format: str = typer.Option("json", "--format", "-f")
 ):
     """Convert file to different format."""
-    typer.echo(f"📄 Converting {input_file} to {output_format}")
+    typer.echo(f" Converting {input_file} to {output_format}")
     # Your conversion logic here
-    typer.echo(f"✅ Converted to {output_format}")
+    typer.echo(f" Converted to {output_format}")
 
 # THIS IS THE MAGIC LINE - adds slash commands and MCP support!
 add_slash_mcp_commands(app)

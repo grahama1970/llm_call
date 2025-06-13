@@ -1,9 +1,29 @@
+"""
+Module: llm_call_delegator.py
+Description: Functions for llm call delegator operations
+
+External Dependencies:
+- asyncio: [Documentation URL]
+- loguru: [Documentation URL]
+- dotenv: [Documentation URL]
+- src: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 #!/usr/bin/env python3
 """
 LLM Call Delegator Tool for Claude Agents.
 
 This script enables Claude agents to make recursive LLM calls to other models.
-It's designed to be executed by Claude CLI via MCP tool configuration.
+It's designed to be executed by Claude CLI via MCP tool configuration.'
 
 Usage:
     python llm_call_delegator.py --model "vertex_ai/gemini-1.5-pro" --prompt "Analyze this text" --text "long content..."
@@ -91,7 +111,7 @@ async def delegate_llm_call(
         "temperature": temperature,
         "max_tokens": max_tokens,
         "recursion_depth": current_depth + 1,  # Track depth
-        "default_validate": False  # Don't validate delegated calls
+        "default_validate": False  # Don't validate delegated calls'
     }
     
     if json_mode:

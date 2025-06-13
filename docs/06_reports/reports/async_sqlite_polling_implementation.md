@@ -105,7 +105,7 @@ response = await client.post(
 ## Running the Enhanced Server
 
 ```bash
-cd /home/graham/workspace/experiments/claude_max_proxy
+cd /home/graham/workspace/experiments/llm_call
 python src/llm_call/proof_of_concept/poc_claude_proxy_with_polling.py
 ```
 

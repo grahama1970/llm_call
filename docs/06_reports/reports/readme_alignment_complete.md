@@ -68,7 +68,7 @@ The README uses incorrect model names. Should update:
 
 ### MCP Server
 ```bash
-cd /home/graham/workspace/experiments/claude_max_proxy
+cd /home/graham/workspace/experiments/llm_call
 source .venv/bin/activate
 python -m src.llm_call.mcp_server
 # Running on http://localhost:8001
@@ -76,7 +76,7 @@ python -m src.llm_call.mcp_server
 
 ### Claude Proxy with Polling
 ```bash
-cd /home/graham/workspace/experiments/claude_max_proxy
+cd /home/graham/workspace/experiments/llm_call
 source .venv/bin/activate
 python src/llm_call/proof_of_concept/poc_claude_proxy_with_polling.py
 # Running on http://localhost:3010

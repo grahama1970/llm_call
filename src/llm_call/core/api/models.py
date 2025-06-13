@@ -1,5 +1,7 @@
 """
 API models for Claude CLI proxy.
+Module: models.py
+Description: Data models and schemas for models
 
 This module defines Pydantic models for the OpenAI-compatible API.
 
@@ -86,14 +88,14 @@ if __name__ == "__main__":
     
     # Test message
     msg = Message(role="user", content="Hello, Claude!")
-    print(f"✅ Message created: {msg}")
+    print(f" Message created: {msg}")
     
     # Test request
     request = ChatCompletionRequest(
         model="gpt-3.5-turbo",
         messages=[msg]
     )
-    print(f"✅ Request created with model: {request.model}")
+    print(f" Request created with model: {request.model}")
     
     # Test response
     response = ChatCompletionResponse(
@@ -107,6 +109,6 @@ if __name__ == "__main__":
         ],
         usage=Usage(prompt_tokens=10, completion_tokens=8, total_tokens=18)
     )
-    print(f"✅ Response created with {len(response.choices)} choices")
+    print(f" Response created with {len(response.choices)} choices")
     
-    print("\n✅ All API models validated successfully!")
+    print("\n All API models validated successfully!")

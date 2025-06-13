@@ -1,3 +1,21 @@
+"""
+Module: spacy_utils.py
+Description: Utility functions and helpers for spacy utils
+
+External Dependencies:
+- spacy: [Documentation URL]
+- loguru: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 import spacy
 from loguru import logger
 from functools import lru_cache

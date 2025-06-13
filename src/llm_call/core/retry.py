@@ -1,5 +1,6 @@
 """
 Retry mechanism with validation for LLM calls.
+Module: retry.py
 
 This module provides a sophisticated retry logic that integrates with validation strategies,
 including staged retry with tool assistance and human escalation.
@@ -76,6 +77,8 @@ import litellm
 from litellm import completion
 from loguru import logger
 from pydantic import BaseModel
+
+from llm_call.core.utils.auth_diagnostics import diagnose_auth_error
 
 from llm_call.core.base import ValidationResult, ValidationStrategy
 from llm_call.core.utils.initialize_litellm_cache import initialize_litellm_cache
@@ -298,7 +301,7 @@ def build_retry_feedback_message(
     
     # Add tool usage suggestion if we've hit the threshold
     if use_tool:
-        parts.append(f"\n🔧 IMPORTANT: You should use the '{use_tool}' tool to help debug and fix these issues.")
+        parts.append(f"\n IMPORTANT: You should use the '{use_tool}' tool to help debug and fix these issues.")
         if tool_instruction:
             parts.append(f"   {tool_instruction}")
         else:
@@ -553,6 +556,19 @@ async def retry_with_validation(
             raise
         except Exception as e:
             logger.error(f"Attempt {attempt + 1} failed with error: {type(e).__name__}: {e}")
+            
+            # Check if this is an authentication error
+            error_str = str(e).lower()
+            is_auth_error = any(auth_term in error_str for auth_term in ["jwt", "token", "auth", "credential", "forbidden", "unauthorized", "403", "401"])
+            
+            if is_auth_error:
+                # Diagnose authentication error with detailed information
+                model_name = kwargs.get("model", "unknown")
+                diagnose_auth_error(e, model_name, context={"attempt": attempt + 1, "llm_config": original_llm_config})
+                
+                # Authentication errors should not be retried
+                logger.error("Authentication errors cannot be resolved by retrying. Fix the issue and try again.")
+                raise
             
             # Record failure in circuit breaker
             if circuit_breaker:
@@ -888,7 +904,7 @@ if __name__ == "__main__":
         }
         content = extract_content_from_response(dict_response)
         assert content == "This is the actual content", f"Expected content, got: {content}"
-        logger.success("✓ Dict response extraction works")
+        logger.success(" Dict response extraction works")
         
         # Test 2: Extract content from object-like response
         class MockMessage:
@@ -903,13 +919,13 @@ if __name__ == "__main__":
         obj_response = MockResponse()
         content = extract_content_from_response(obj_response)
         assert content == "Object-based content", f"Expected content, got: {content}"
-        logger.success("✓ Object response extraction works")
+        logger.success(" Object response extraction works")
         
         # Test 3: Fallback for unknown format
         unknown_response = {"unknown": "format"}
         content = extract_content_from_response(unknown_response)
         assert "unknown" in content, f"Expected stringified response, got: {content}"
-        logger.success("✓ Fallback extraction works")
+        logger.success(" Fallback extraction works")
         
         # Test 4: Build feedback message with tool suggestion
         from llm_call.core.base import ValidationResult
@@ -938,7 +954,7 @@ if __name__ == "__main__":
         assert "Original prompt" in feedback
         assert "perplexity-ask" in feedback
         assert "Research the correct JSON format" in feedback
-        logger.success("✓ Feedback message generation with tool suggestion works")
+        logger.success(" Feedback message generation with tool suggestion works")
         
         # Test 5: HumanReviewNeededError structure
         try:
@@ -950,7 +966,7 @@ if __name__ == "__main__":
         except HumanReviewNeededError as e:
             assert e.context["test"] == "context"
             assert len(e.validation_errors) == 2
-            logger.success("✓ HumanReviewNeededError works correctly")
+            logger.success(" HumanReviewNeededError works correctly")
         
         # Test 6: Exponential backoff with jitter
         config = RetryConfig(
@@ -971,7 +987,7 @@ if __name__ == "__main__":
             assert expected_min <= delay <= expected_max, \
                 f"Delay {delay} not in range [{expected_min}, {expected_max}] for attempt {attempt}"
         
-        logger.success("✓ Exponential backoff with jitter works correctly")
+        logger.success(" Exponential backoff with jitter works correctly")
         
         # Test 7: Circuit breaker
         cb_config = CircuitBreakerConfig(
@@ -1003,7 +1019,7 @@ if __name__ == "__main__":
         circuit.record_success()
         assert circuit.state == CircuitState.CLOSED
         
-        logger.success("✓ Circuit breaker works correctly")
+        logger.success(" Circuit breaker works correctly")
         
         logger.info("\nAll tests passed! Enhanced retry logic is working correctly.")
     

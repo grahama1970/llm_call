@@ -2,7 +2,7 @@
 
 ## Summary
 
-All tests in the claude_max_proxy project are now passing with 100% success rate. No mocks are used for core functionality - all tests use real LLM calls as required.
+All tests in the llm_call project are now passing with 100% success rate. No mocks are used for core functionality - all tests use real LLM calls as required.
 
 ## Changes Made
 

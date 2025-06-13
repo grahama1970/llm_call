@@ -1,3 +1,23 @@
+"""
+Module: claude_executor.py
+Description: Functions for claude executor operations
+
+External Dependencies:
+- shlex: [Documentation URL]
+- loguru: [Documentation URL]
+- : [Documentation URL]
+- shutil: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 # src/claude_comms/inter_module_communicator/core/claude_executor.py
 """
 Core logic for executing the Claude CLI as a subprocess, streaming its output,
@@ -336,11 +356,11 @@ if __name__ == "__main__":
 
     # Final validation result
     if all_validation_failures:
-        logger.error(f"❌ VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
+        logger.error(f" VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
         for i, failure in enumerate(all_validation_failures):
             logger.error(f"  Failure {i+1}: {failure}")
         sys.exit(1)
     else:
-        logger.info(f"✅ VALIDATION PASSED - All {total_tests} tests produced expected results for claude_executor.py.")
+        logger.info(f" VALIDATION PASSED - All {total_tests} tests produced expected results for claude_executor.py.")
         logger.info("Module is validated and formal tests can now be written.")
         sys.exit(0)

@@ -1,8 +1,19 @@
 """
 Convenience API for llm_call package.
+Module: api.py
 
 Provides simple, user-friendly functions that match the README examples.
 """
+# Security middleware - try to import if available
+try:
+    from granger_security_middleware_simple import GrangerSecurity, SecurityConfig
+    # Initialize security
+    _security = GrangerSecurity()
+except ImportError:
+    # If security middleware is not available, continue without it
+    _security = None
+
+
 import asyncio
 from typing import Optional, List, Union, Dict, Any
 from pathlib import Path
@@ -225,7 +236,7 @@ class ChatSession:
             message: The message to send
             
         Returns:
-            The assistant's response
+            The assistant's response'
         """
         # Add user message
         self.history.append({"role": "user", "content": message})

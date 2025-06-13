@@ -1,4 +1,5 @@
 """Debug infrastructure for validation runs.
+Module: debug.py
 
 Provides detailed tracing and debugging capabilities for the validation system.
 """
@@ -148,7 +149,7 @@ class DebugManager:
         """Add a trace to the summary table."""
         indent = "  " * level
         
-        result_symbol = "✓" if trace.result and trace.result.valid else "✗"
+        result_symbol = "" if trace.result and trace.result.valid else ""
         result_color = "green" if trace.result and trace.result.valid else "red"
         
         error_text = ""
@@ -214,7 +215,7 @@ class DebugManager:
     def _add_trace_to_tree(self, tree: Tree, trace: ValidationTrace) -> None:
         """Add a trace to the tree visualization."""
         # Create node text
-        status = "✓" if trace.result and trace.result.valid else "✗"
+        status = "" if trace.result and trace.result.valid else ""
         color = "green" if trace.result and trace.result.valid else "red"
         
         node_text = (

@@ -1,5 +1,6 @@
 """
 API request handlers for Claude CLI proxy.
+Module: handlers.py
 
 This module contains the request handlers that process incoming API requests
 and delegate them to the Claude CLI executor.
@@ -39,7 +40,7 @@ async def chat_completions_endpoint(request: Request):
     """
     Handle chat completion requests in OpenAI format.
     
-    This endpoint receives messages in OpenAI's chat format and proxies
+    This endpoint receives messages in OpenAI's chat format and proxies'
     them to the Claude CLI, returning responses in the same format.
     """
     logger.info("[API Handler] Received chat completion request")
@@ -101,7 +102,7 @@ async def chat_completions_endpoint(request: Request):
     preview_length = 200
     stripped_response_preview = claude_response_text.strip()[:preview_length]
     ellipsis = "..." if len(claude_response_text.strip()) > preview_length else ""
-    logger.info(f"[API Handler] Claude response preview: 🤖❯ {stripped_response_preview}{ellipsis}")
+    logger.info(f"[API Handler] Claude response preview:  {stripped_response_preview}{ellipsis}")
     
     # Construct OpenAI-compatible response
     response_payload = {
@@ -143,7 +144,7 @@ if __name__ == "__main__":
     try:
         assert len(router.routes) > 0
         assert any(route.path == "/v1/chat/completions" for route in router.routes)
-        logger.success("✅ Router configured with chat completions endpoint")
+        logger.success(" Router configured with chat completions endpoint")
     except Exception as e:
         all_validation_failures.append(f"Router configuration failed: {e}")
     
@@ -152,16 +153,16 @@ if __name__ == "__main__":
     try:
         assert settings.claude_proxy.cli_path
         assert settings.claude_proxy.workspace_dir
-        logger.success("✅ Configuration accessible in handlers")
+        logger.success(" Configuration accessible in handlers")
     except Exception as e:
         all_validation_failures.append(f"Configuration access failed: {e}")
     
     # Final validation result
     if all_validation_failures:
-        logger.error(f"❌ VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
+        logger.error(f" VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
         for failure in all_validation_failures:
             logger.error(f"  - {failure}")
         sys.exit(1)
     else:
-        logger.success(f"✅ VALIDATION PASSED - All {total_tests} tests produced expected results")
+        logger.success(f" VALIDATION PASSED - All {total_tests} tests produced expected results")
         sys.exit(0)

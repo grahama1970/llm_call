@@ -1,13 +1,13 @@
 # Integration Guide for Claude Module Communicator (HUB)
 
-This guide is specifically for the HUB orchestrator to understand how to use claude_max_proxy as a SPOKE module.
+This guide is specifically for the HUB orchestrator to understand how to use llm_call as a SPOKE module.
 
 ## Quick Integration
 
 ```python
 # In your HUB orchestrator
-from claude_max_proxy.llm_call.tools.conversational_delegator import conversational_delegate
-from claude_max_proxy.llm_call.core.conversation_manager import ConversationManager
+from llm_call.llm_call.tools.conversational_delegator import conversational_delegate
+from llm_call.llm_call.core.conversation_manager import ConversationManager
 
 # Initialize conversation manager
 manager = ConversationManager()
@@ -159,5 +159,5 @@ The SPOKE handles errors gracefully:
 
 ## Contact
 
-This SPOKE is maintained as part of the claude_max_proxy project.
+This SPOKE is maintained as part of the llm_call project.
 For issues, check the logs in `logs/` directory.

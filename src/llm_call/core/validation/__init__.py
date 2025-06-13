@@ -1,5 +1,7 @@
 """
 Validation module initialization.
+Module: __init__.py
+Description: Package initialization and exports
 
 This module loads all available validators into the strategy registry.
 """

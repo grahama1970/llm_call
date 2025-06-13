@@ -1,8 +1,9 @@
 """
 Text chunking module for GitGet repository analysis.
+Module: text_chunker.py
 
 This module provides functionality to break down text into manageable chunks
-while preserving section structure, hierarchy, and metadata. It's specifically 
+while preserving section structure, hierarchy, and metadata. It's specifically '
 designed to work with the GitGet workflow for analyzing repositories.
 
 Key features:
@@ -26,12 +27,12 @@ Sample Input:
     
     Install using pip:
     ```bash
-    pip install mypackage
+    uv add mypackage
     ```
     
     ## Usage Examples
     
-    Here's how to use the primary features...
+    Here's how to use the primary features...'
     '''
     
     chunker = TextChunker(
@@ -68,7 +69,7 @@ Expected Output:
             }
         },
         {
-            "content": "## Usage Examples\n\nHere's how to use the primary features...",
+            "content": "## Usage Examples\n\nHere's how to use the primary features...",'
             "section_path": ["Repository Overview", "Usage Examples"],
             "section_id": "c4f7d1b692",
             "metadata": {
@@ -662,7 +663,7 @@ class TextChunker:
             "description_token_count": 0,
             "embedding_code": None,
             "embedding_description": None,
-            "code_metadata": {},  # We'll add code metadata later
+            "code_metadata": {},  # We'll add code metadata later'
             "section_id": section_hash,
             "section_path": self.section_hierarchy.get_titles(),
             "section_hash_path": self.section_hierarchy.get_hashes(),
@@ -902,10 +903,10 @@ This sample document should be sufficient to verify the basic functionality.
         }
     
     if passes_verification:
-        console.print("\n[bold green]✅ VALIDATION COMPLETE - Text chunking works as expected[/bold green]")
+        console.print("\n[bold green] VALIDATION COMPLETE - Text chunking works as expected[/bold green]")
         sys.exit(0)
     else:
-        console.print("\n[bold red]❌ VALIDATION FAILED - Text chunking has issues:[/bold red]")
+        console.print("\n[bold red] VALIDATION FAILED - Text chunking has issues:[/bold red]")
         for key, details in verification_failures.items():
             console.print(f"  - {key}: Expected: {details['expected']}, Got: {details['actual']}")
         console.print(f"Total errors: {len(verification_failures)} test(s) failed")

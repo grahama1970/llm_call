@@ -1,5 +1,7 @@
 """
 Configuration loader for llm_call package.
+Module: loader.py
+Description: Functions for loader operations
 
 This module loads configuration from environment variables and configuration files,
 then validates and returns properly typed settings objects.
@@ -197,7 +199,7 @@ if __name__ == "__main__":
         # Test 1: Load default configuration
         config = load_configuration()
         assert config.claude_proxy.port == 8001
-        logger.success("✅ Default configuration loaded")
+        logger.success(" Default configuration loaded")
         
         # Test 2: Test with environment variable
         os.environ["CLAUDE_PROXY_PORT"] = "8002"
@@ -205,7 +207,7 @@ if __name__ == "__main__":
         config2 = load_configuration()
         assert config2.claude_proxy.port == 8002
         assert config2.log_level == "DEBUG"
-        logger.success("✅ Environment variable override works")
+        logger.success(" Environment variable override works")
         
         # Test 3: Create a test config file
         test_config = {
@@ -229,16 +231,16 @@ if __name__ == "__main__":
         assert config3.llm.default_model == "gpt-4"
         assert config3.llm.default_temperature == 0.5
         assert config3.claude_proxy.port == 8003
-        logger.success("✅ Config file loading works")
+        logger.success(" Config file loading works")
         
         # Clean up
         test_config_path.unlink()
         
-        logger.success("✅ All configuration loader tests passed")
+        logger.success(" All configuration loader tests passed")
         sys.exit(0)
         
     except Exception as e:
-        logger.error(f"❌ Configuration loader test failed: {e}")
+        logger.error(f" Configuration loader test failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

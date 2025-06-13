@@ -1,3 +1,21 @@
+"""
+Module: focused_claude_extractor.py
+Description: Functions for focused claude extractor operations
+
+External Dependencies:
+- loguru: [Documentation URL]
+- shlex: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 # focused_claude_executor.py
 import subprocess
 import json
@@ -128,7 +146,7 @@ def execute_claude_and_get_result(
                         final_result_content = data["result"]
                         logger.info("Found 'result' in late-stage captured output.")
                         break
-                except: #nosec
+                except Exception:  # Keep generic as marked with #nosec
                     pass
 
 

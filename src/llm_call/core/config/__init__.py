@@ -1,4 +1,8 @@
-"""Configuration module for llm_call core."""
+"""
+Configuration module for llm_call core.
+Module: __init__.py
+Description: Package initialization and exports
+"""
 
 from llm_call.core.config.settings import (
     Settings,

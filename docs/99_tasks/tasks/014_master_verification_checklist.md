@@ -7,7 +7,7 @@ Complete checklist to verify all core and CLI modules are working correctly afte
 
 ### All-In-One Test Command
 ```bash
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && source .venv/bin/activate && cd src && python -c "
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && source .venv/bin/activate && cd src && python -c "
 # Test all critical imports
 try:
     from llm_call.core.base import ValidationResult
@@ -43,27 +43,27 @@ except Exception as e:
 ### 1. Core Module Imports
 ```bash
 # Execute Task 012
-claude code "cat /home/graham/workspace/experiments/claude_max_proxy/docs/tasks/012_verify_all_core_imports.md"
+claude code "cat /home/graham/workspace/experiments/llm_call/docs/tasks/012_verify_all_core_imports.md"
 ```
 
 ### 2. Router Fix Validation  
 ```bash
 # Execute Task 013
-claude code "cat /home/graham/workspace/experiments/claude_max_proxy/docs/tasks/013_verify_router_provider_fix.md"
+claude code "cat /home/graham/workspace/experiments/llm_call/docs/tasks/013_verify_router_provider_fix.md"
 ```
 
 ### 3. Run Comprehensive Verification Script
 ```bash
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && source .venv/bin/activate && cd src && python -m llm_call.core.comprehensive_verification_v3 | grep -E "(Total checks|Successes|Failures|OVERALL STATUS)"'"
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && source .venv/bin/activate && cd src && python -m llm_call.core.comprehensive_verification_v3 | grep -E "(Total checks|Successes|Failures|OVERALL STATUS)"'"
 ```
 
 ### 4. Check Recent Changes
 ```bash
 # View CHANGELOG updates
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && tail -50 CHANGELOG.md | grep -A 10 "Core and CLI Module Verification"'"
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && tail -50 CHANGELOG.md | grep -A 10 "Core and CLI Module Verification"'"
 
 # View verification summary
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && cat verification_summary_report.md | head -20'"
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && cat verification_summary_report.md | head -20'"
 ```
 
 ## Verification Checklist
@@ -99,7 +99,7 @@ claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham
 
 Run this to get current statistics:
 ```bash
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && source .venv/bin/activate && cd src && python -c "
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && source .venv/bin/activate && cd src && python -c "
 import os
 from pathlib import Path
 

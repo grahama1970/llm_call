@@ -1,4 +1,5 @@
 """RL-based provider selection using graham_rl_commons"""
+Module: provider_selector.py
 
 import numpy as np
 from typing import Dict, List, Optional, Tuple, Any
@@ -8,13 +9,13 @@ import time
 import logging
 from collections import defaultdict
 
-# Import from graham_rl_commons
+# Import from rl_commons
 try:
-    from graham_rl_commons import ContextualBandit, RLState, RLAction, RLReward, RLTracker
+    from rl_commons import ContextualBandit, RLState, RLAction, RLReward, RLTracker
 except ImportError:
     raise ImportError(
-        "graham_rl_commons not found. Install with: "
-        "pip install git+file:///home/graham/workspace/experiments/rl_commons"
+        "rl_commons not found. Install with: "
+        "uv add git+file:///home/graham/workspace/experiments/rl_commons"
     )
 
 logger = logging.getLogger(__name__)
@@ -86,7 +87,7 @@ class RLProviderSelector:
         )
         
         # Initialize tracking
-        self.tracker = RLTracker("claude_max_proxy_rl")
+        self.tracker = RLTracker("llm_call_rl")
         self.provider_metrics = {p: ProviderMetrics(p) for p in providers}
         
         # Load existing model if provided

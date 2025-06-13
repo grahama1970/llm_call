@@ -1,3 +1,21 @@
+"""
+Module: file_utils.py
+Description: Utility functions and helpers for file utils
+
+External Dependencies:
+- loguru: [Documentation URL]
+- dotenv: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 import os
 from loguru import logger
 from pathlib import Path

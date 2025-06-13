@@ -1,5 +1,7 @@
 """
 Conversation state persistence for fluid multi-model collaboration.
+Module: conversation_manager.py
+Description: Implementation of conversation manager functionality
 
 This module manages conversation state to enable fluid, iterative conversations
 between different LLM models (Claude, Gemini, GPT, etc.) using SQLite or ArangoDB.

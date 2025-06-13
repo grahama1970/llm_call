@@ -42,7 +42,7 @@ Description: Check Python environment
 ```bash
 which python
 python --version
-pip list | grep -E "(litellm|fastapi|typer|fastmcp)"
+uv uv pip list | grep -E "(litellm|fastapi|typer|fastmcp)"
 ```
 
 /env-vars
@@ -242,14 +242,14 @@ python --version
 /py-packages
 Description: List installed packages
 ```bash
-pip list | sort
+uv uv pip list | sort
 ```
 
 /py-install
 Description: Install project dependencies
 ```bash
 cd /home/graham/workspace/experiments/claude_max_proxy
-uv pip install -e .
+uv uv add -e .
 ```
 
 /py-shell

@@ -1,9 +1,9 @@
-# Task List: Claude Max Proxy MCP Integration for Natrium (REVISED)
+# Task List: LLM Call MCP Integration for Natrium (REVISED)
 
 ## Overview
-This task list is based on the original 19 Natrium tasks. Claude Max Proxy is responsible for Tasks 3, 4, 5 (partial - logical), 7, 8, and overall pipeline orchestration with evaluation.
+This task list is based on the original 19 Natrium tasks. LLM Call is responsible for Tasks 3, 4, 5 (partial - logical), 7, 8, and overall pipeline orchestration with evaluation.
 
-## Claude Max Proxy's Role in the 19-Task Pipeline
+## LLM Call's Role in the 19-Task Pipeline
 
 ### Task 3: Formalize Requirements (formalize_requirement_001)
 ### Task 4: Pratt Parse (pratt_parse_001)
@@ -18,12 +18,12 @@ This task list is based on the original 19 Natrium tasks. Claude Max Proxy is re
 
 **Goal**: Implement core endpoints for Tasks 3, 4, 5, 7, and evaluation
 
-Create claude_max_proxy_mcp_server.py:
+Create llm_call_mcp_server.py:
 
 ```python
 #!/usr/bin/env python3
 """
-Claude Max Proxy MCP Server - Supports Tasks 3, 4, 5, 7, 8 of Natrium pipeline
+LLM Call MCP Server - Supports Tasks 3, 4, 5, 7, 8 of Natrium pipeline
 Based on original_natrium_task_list_gemini.md requirements
 """
 from fastmcp import FastMCP
@@ -36,7 +36,7 @@ import re
 
 # Initialize MCP server
 mcp = FastMCP(
-    name="claude-max-proxy-mcp-server",
+    name="llm-call-mcp-server",
     version="0.1.0",
     description="Formalization, parsing, and evaluation for Natrium"
 )

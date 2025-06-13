@@ -1,3 +1,21 @@
+"""
+Module: multimodal_utils.py
+Description: Utility functions and helpers for multimodal utils
+
+External Dependencies:
+- loguru: [Documentation URL]
+- llm_call: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 from typing import List, Dict, Any
 from loguru import logger
 

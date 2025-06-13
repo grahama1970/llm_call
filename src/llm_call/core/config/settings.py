@@ -1,5 +1,6 @@
 """
 Configuration settings models for llm_call package.
+Module: settings.py
 
 This module defines Pydantic models for type-safe configuration management.
 Settings are loaded from environment variables and configuration files.
@@ -36,11 +37,11 @@ class RetrySettings(BaseModel):
 class ClaudeProxySettings(BaseModel):
     """Claude CLI proxy server settings."""
     # From POC: CLAUDE_CLI_PATH, POC_TARGET_DIR, POC_SERVER_HOST, POC_SERVER_PORT
-    cli_path: str = Field(default="/home/graham/.nvm/versions/node/v22.15.0/bin/claude")
+    cli_path: str = Field(default="/usr/bin/claude")
     workspace_dir: Path = Field(default_factory=lambda: Path.home() / ".claude_workspace")
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=3010)  # Match the running POC server
-    proxy_url: str = Field(default="http://127.0.0.1:3010/v1/chat/completions")
+    proxy_url: str = Field(default="http://claude-proxy:3010/v1/chat/completions")
     default_model_label: str = Field(default="max/poc-claude-default")
     
     @property
@@ -155,22 +156,22 @@ if __name__ == "__main__":
     try:
         # Test basic settings creation
         settings = Settings()
-        logger.success(f"✅ Created default settings")
+        logger.success(f" Created default settings")
         
         # Test Claude proxy settings
         assert settings.claude_proxy.port == 8001
         assert settings.claude_proxy.host == "127.0.0.1"
-        logger.success(f"✅ Claude proxy settings: {settings.claude_proxy.host}:{settings.claude_proxy.port}")
+        logger.success(f" Claude proxy settings: {settings.claude_proxy.host}:{settings.claude_proxy.port}")
         
         # Test retry settings
         assert settings.retry.max_attempts == 3
         assert settings.retry.backoff_factor == 2.0
-        logger.success(f"✅ Retry settings: max_attempts={settings.retry.max_attempts}")
+        logger.success(f" Retry settings: max_attempts={settings.retry.max_attempts}")
         
         # Test LLM settings
         assert settings.llm.default_temperature == 0.1
         assert settings.llm.default_max_tokens == 250
-        logger.success(f"✅ LLM settings: temp={settings.llm.default_temperature}, max_tokens={settings.llm.default_max_tokens}")
+        logger.success(f" LLM settings: temp={settings.llm.default_temperature}, max_tokens={settings.llm.default_max_tokens}")
         
         # Test custom settings
         custom_settings = Settings(
@@ -179,13 +180,13 @@ if __name__ == "__main__":
         )
         assert custom_settings.claude_proxy.port == 8002
         assert custom_settings.log_level == "DEBUG"
-        logger.success(f"✅ Custom settings work")
+        logger.success(f" Custom settings work")
         
-        logger.success("✅ All settings tests passed")
+        logger.success(" All settings tests passed")
         sys.exit(0)
         
     except Exception as e:
-        logger.error(f"❌ Settings test failed: {e}")
+        logger.error(f" Settings test failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -1,5 +1,7 @@
 """
 Core module for llm_call package.
+Module: __init__.py
+Description: Package initialization and exports
 
 This module initializes the core functionality including logging,
 configuration, and exposes key components.

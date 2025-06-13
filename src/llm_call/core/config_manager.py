@@ -1,5 +1,7 @@
 """
-Configuration manager for claude_max_proxy.
+Configuration manager for llm_call.
+Module: config_manager.py
+Description: Configuration management and settings
 
 Manages application configuration including model settings, API keys, and runtime options.
 """
@@ -241,16 +243,16 @@ if __name__ == "__main__":
     
     # Test getting models
     models = manager.get_all_models()
-    print(f"✅ Configured {len(models)} models: {models}")
+    print(f" Configured {len(models)} models: {models}")
     
     # Test getting specific model config
     gpt4_config = manager.get_model_config("gpt-4")
     if gpt4_config:
-        print(f"✅ GPT-4 config: provider={gpt4_config.provider}, max_tokens={gpt4_config.max_tokens}")
+        print(f" GPT-4 config: provider={gpt4_config.provider}, max_tokens={gpt4_config.max_tokens}")
     
     # Test updating model config
     success = manager.update_model_config("gpt-4", {"temperature": 0.5})
-    print(f"✅ Updated GPT-4 config: {success}")
+    print(f" Updated GPT-4 config: {success}")
     
     # Test saving config
     import tempfile
@@ -258,10 +260,10 @@ if __name__ == "__main__":
         temp_path = Path(f.name)
     
     success = manager.save_config(temp_path)
-    print(f"✅ Saved config to {temp_path}: {success}")
+    print(f" Saved config to {temp_path}: {success}")
     
     # Clean up
     if temp_path.exists():
         temp_path.unlink()
     
-    print("\n✅ All ConfigManager tests passed!")
+    print("\n All ConfigManager tests passed!")

@@ -1,5 +1,7 @@
 """
 Built-in validation strategies.
+Module: __init__.py
+Description: Package initialization and exports
 
 This package contains all the built-in validators available in llm_call.
 """

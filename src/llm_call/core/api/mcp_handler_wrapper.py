@@ -1,5 +1,6 @@
 """
 MCP Handler wrapper class for the MCP server.
+Module: mcp_handler_wrapper.py
 
 This wraps the existing mcp_handler functionality into a class-based interface.
 """
@@ -176,20 +177,20 @@ if __name__ == "__main__":
     
     # Test getting available servers
     servers = handler.get_available_servers()
-    print(f"✅ Found {len(servers)} available servers")
+    print(f" Found {len(servers)} available servers")
     
     # Test getting MCP config
     config = handler.get_mcp_config(["perplexity-ask", "github"], "/tmp")
-    print(f"✅ Built config with {len(config['mcpServers'])} servers")
+    print(f" Built config with {len(config['mcpServers'])} servers")
     
     # Test writing temp config
     import tempfile
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_path = handler.write_temp_config(config, tmpdir)
-        print(f"✅ Wrote temp config to: {temp_path}")
+        print(f" Wrote temp config to: {temp_path}")
         
         # Test cleanup
         handler.cleanup_temp_config(temp_path)
-        print("✅ Cleaned up temp config")
+        print(" Cleaned up temp config")
     
-    print("\n✅ All MCPHandler tests passed!")
+    print("\n All MCPHandler tests passed!")

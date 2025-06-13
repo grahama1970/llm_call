@@ -1,6 +1,6 @@
 # Task 010: Comprehensive Verification Using Claude Code CLI - Not Started
 
-**Objective**: Use Claude Code CLI to systematically verify all work completed in the claude_max_proxy project, ensuring every component functions correctly.
+**Objective**: Use Claude Code CLI to systematically verify all work completed in the llm_call project, ensuring every component functions correctly.
 
 **Requirements**:
 1. Execute all verification using Claude Code CLI commands with full parameters

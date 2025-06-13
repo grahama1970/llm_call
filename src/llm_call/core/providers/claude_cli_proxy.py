@@ -1,5 +1,6 @@
 """
 Claude CLI proxy provider implementation.
+Module: claude_cli_proxy.py
 
 This provider routes requests to the Claude CLI via our FastAPI proxy server.
 
@@ -108,7 +109,7 @@ if __name__ == "__main__":
         try:
             provider = ClaudeCLIProxyProvider()
             assert provider.proxy_url == config.claude_proxy.proxy_url
-            logger.success("✅ Provider initializes with correct URL")
+            logger.success(" Provider initializes with correct URL")
         except Exception as e:
             all_validation_failures.append(f"Initialization failed: {e}")
         
@@ -127,7 +128,7 @@ if __name__ == "__main__":
             # the provider is ready and has the right structure
             assert hasattr(provider, 'complete')
             assert hasattr(provider, 'proxy_url')
-            logger.success("✅ Provider has correct structure")
+            logger.success(" Provider has correct structure")
         except Exception as e:
             all_validation_failures.append(f"Structure test failed: {e}")
         
@@ -137,10 +138,10 @@ if __name__ == "__main__":
     failures, tests = asyncio.run(test_provider())
     
     if failures:
-        logger.error(f"❌ VALIDATION FAILED - {len(failures)} of {tests} tests failed:")
+        logger.error(f" VALIDATION FAILED - {len(failures)} of {tests} tests failed:")
         for failure in failures:
             logger.error(f"  - {failure}")
         sys.exit(1)
     else:
-        logger.success(f"✅ VALIDATION PASSED - All {tests} tests produced expected results")
+        logger.success(f" VALIDATION PASSED - All {tests} tests produced expected results")
         sys.exit(0)

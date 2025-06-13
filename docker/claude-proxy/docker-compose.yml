@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  claude-proxy:
+    build: .
+    container_name: claude-proxy-server
+    ports:
+      - "3010:3010"
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      # Mount Claude credentials from host
+      - CLAUDE_CREDENTIALS_PATH=/claude-creds/.credentials.json
+    volumes:
+      # Mount Claude credentials as read-only
+      - ~/.claude/.credentials.json:/claude-creds/.credentials.json:ro
+      # Mount Claude CLI binary
+      - ~/.nvm/versions/node/v22.15.0/bin/claude:/usr/local/bin/claude:ro
+      # Persist workspace
+      - claude-workspace:/app/claude_poc_workspace
+    restart: unless-stopped
+    networks:
+      - llm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  claude-workspace:
+    driver: local
+
+networks:
+  llm-network:
+    driver: bridge

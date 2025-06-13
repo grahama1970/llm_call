@@ -1,4 +1,7 @@
-"""API module for Claude CLI proxy server."""
+"""API module for Claude CLI proxy server.
+Module: __init__.py
+Description: Package initialization and exports
+"""
 
 from llm_call.core.api.main import app
 from llm_call.core.api.handlers import chat_completions_endpoint

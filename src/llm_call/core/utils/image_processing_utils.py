@@ -1,3 +1,24 @@
+"""
+Module: image_processing_utils.py
+Description: Utility functions and helpers for image processing utils
+
+External Dependencies:
+- base64: [Documentation URL]
+- mimetypes: [Documentation URL]
+- PIL: [Documentation URL]
+- loguru: [Documentation URL]
+- requests: https://requests.readthedocs.io/
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 import base64
 import hashlib
 from typing import Any, Dict, Optional, Tuple, Union
@@ -111,12 +132,12 @@ def compress_image(image_path_str: str, image_directory_str: str, max_size_kb: i
             # Reduce quality first
             if current_quality > 10:
                 current_quality -= 15 # More aggressive quality reduction
-                current_quality = max(10, current_quality) # Don't go below 10
+                current_quality = max(10, current_quality) # Don't go below 10'
             # If quality is already low, start resizing
             elif attempt < max_attempts - 1 : # Avoid resizing on the very last attempt if quality reduction alone failed
                 new_width = int(current_width * (1 - resize_step / 100))
                 new_height = int(current_height * (1 - resize_step / 100))
-                if new_width < 50 or new_height < 50 : # Don't make it too tiny
+                if new_width < 50 or new_height < 50 : # Don't make it too tiny'
                     logger.warning(f"Image dimensions for {original_file_name} too small to reduce further. Current: {current_width}x{current_height}")
                     break # Stop trying if it gets too small
                 current_width, current_height = new_width, new_height

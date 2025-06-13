@@ -36,9 +36,9 @@ Successfully implemented and validated the POC retry manager with sophisticated 
 
 ### Test Execution
 ```bash
-$ cd /home/graham/workspace/experiments/claude_max_proxy
+$ cd /home/graham/workspace/experiments/llm_call
 $ source .venv/bin/activate
-$ PYTHONPATH=/home/graham/workspace/experiments/claude_max_proxy/src python tests/proof_of_concept/test_poc_retry_real.py
+$ PYTHONPATH=/home/graham/workspace/experiments/llm_call/src python tests/proof_of_concept/test_poc_retry_real.py
 
 [11:23:04] | INFO     | Starting Real-World POC Retry Manager Tests
 [11:23:04] | INFO     | ============================================================

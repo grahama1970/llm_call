@@ -1,3 +1,20 @@
+"""
+Module: config.py
+Description: Configuration management and settings
+
+External Dependencies:
+- None (uses only standard library)
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 # src/claude_comms/inter_module_communicator/core/config.py
 """
 Core configuration settings for the Inter-Module Communicator.

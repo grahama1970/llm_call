@@ -104,7 +104,7 @@ WebSearch: "site:github.com litellm retry validation strategies"
 - Performance overhead < 10% vs direct calls
 **Verification Method**:
 ```bash
-cd /home/graham/workspace/experiments/claude_max_proxy
+cd /home/graham/workspace/experiments/llm_call
 source .venv/bin/activate
 python tests/proof_of_concept/test_poc_retry_real.py
 ```

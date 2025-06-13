@@ -1,5 +1,7 @@
 """
 Universal Slash Command and MCP Generation for Typer CLIs
+Module: slash_mcp_mixin.py
+Description: Functions for slash mcp mixin operations
 
 This module provides a simple way to add slash command and MCP server
 generation to any Typer CLI with a single line of code.
@@ -8,7 +10,7 @@ Usage:
     from arangodb.cli.slash_mcp_mixin import add_slash_mcp_commands
     
     app = typer.Typer()
-    add_slash_mcp_commands(app)  # That's it!
+    add_slash_mcp_commands(app)  # That's it!'
 """
 
 import typer
@@ -130,13 +132,13 @@ def add_slash_mcp_commands(
             cmd_file.write_text(content)
             
             if verbose:
-                typer.echo(f"✅ Created: {cmd_file}")
+                typer.echo(f" Created: {cmd_file}")
             else:
-                typer.echo(f"✅ /project:{slash_name}")
+                typer.echo(f" /project:{slash_name}")
                 
             generated += 1
         
-        typer.echo(f"\n📁 Generated {generated} commands in {out_dir}/")
+        typer.echo(f"\n Generated {generated} commands in {out_dir}/")
     
     def get_all_tools(app_instance: typer.Typer, prefix: str = "") -> dict:
         """Recursively get all commands including sub-commands"""
@@ -235,8 +237,8 @@ def add_slash_mcp_commands(
         }
         
         output.write_text(json.dumps(config, indent=2))
-        typer.echo(f"✅ Generated MCP config: {output}")
-        typer.echo(f"📋 Includes {len(tools)} tools")
+        typer.echo(f" Generated MCP config: {output}")
+        typer.echo(f" Includes {len(tools)} tools")
     
     @app.command(name="serve-mcp")
     def serve_mcp_command(
@@ -252,7 +254,7 @@ def add_slash_mcp_commands(
             
             # Load MCP config
             if not config.exists():
-                typer.echo(f"❌ Config file not found: {config}")
+                typer.echo(f" Config file not found: {config}")
                 typer.echo("\nGenerate it first:")
                 typer.echo(f"  {sys.argv[0]} {command_prefix}-mcp-config")
                 raise typer.Exit(1)
@@ -378,11 +380,11 @@ def add_slash_mcp_commands(
                 
                 registered += 1
                 if debug:
-                    typer.echo(f"  ✅ Registered: {tool_name}")
+                    typer.echo(f"   Registered: {tool_name}")
             
-            typer.echo(f"🔧 Registered {registered} tools")
-            typer.echo(f"🚀 Starting MCP server on {host}:{port}")
-            typer.echo(f"\n📡 Server endpoint: http://{host}:{port}/mcp")
+            typer.echo(f" Registered {registered} tools")
+            typer.echo(f" Starting MCP server on {host}:{port}")
+            typer.echo(f"\n Server endpoint: http://{host}:{port}/mcp")
             typer.echo("\nPress Ctrl+C to stop")
             
             # Run the server
@@ -394,12 +396,12 @@ def add_slash_mcp_commands(
                     port=port
                 )
             except KeyboardInterrupt:
-                typer.echo("\n\n🛑 Server stopped")
+                typer.echo("\n\n Server stopped")
             
         except ImportError:
-            typer.echo("❌ FastMCP not installed!")
+            typer.echo(" FastMCP not installed!")
             typer.echo("\nInstall with: uv add fastmcp")
-            typer.echo("Or: pip install fastmcp")
+            typer.echo("Or: uv add fastmcp")
             raise typer.Exit(1)
     
     return app

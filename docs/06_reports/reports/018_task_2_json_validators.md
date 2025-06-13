@@ -20,7 +20,7 @@ Successfully created the JSON validators module with comprehensive functionality
 
 ### Module Self-Test
 ```bash
-cd /home/graham/workspace/experiments/claude_max_proxy && python src/llm_call/core/validation/json_validators.py
+cd /home/graham/workspace/experiments/llm_call && python src/llm_call/core/validation/json_validators.py
 ```
 
 Output:

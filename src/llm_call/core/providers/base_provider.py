@@ -1,5 +1,6 @@
 """
 Base provider interface for LLM providers.
+Module: base_provider.py
 
 This module defines the abstract base class that all LLM providers must implement.
 

@@ -43,7 +43,7 @@ curl -X POST http://127.0.0.1:3010/v1/chat/completions \
   }'
 ```
 
-**Response**: "Hello! I'm here to help you with your claude_max_proxy project..."
+**Response**: "Hello! I'm here to help you with your llm_call project..."
 
 ### POC Client Test
 ```python

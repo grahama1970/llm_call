@@ -105,7 +105,7 @@ Instead of 6 complex tasks, we need only 3:
 - Task 3: Document and deploy across projects
 
 ### 2. **Focus on Adoption**
-- Create pip package: `pip install typer-slash-mcp`
+- Create pip package: `uv add typer-slash-mcp`
 - Write adoption guide for teams
 - Create CI/CD templates
 

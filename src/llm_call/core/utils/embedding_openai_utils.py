@@ -1,3 +1,22 @@
+"""
+Module: embedding_openai_utils.py
+Description: Utility functions and helpers for embedding openai utils
+
+External Dependencies:
+- litellm: [Documentation URL]
+- loguru: [Documentation URL]
+- llm_call: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 # embedding_utils.py
 import sys
 from typing import List, Dict, Any, Optional

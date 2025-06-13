@@ -1,3 +1,21 @@
+"""
+Module: json_utils.py
+Description: Utility functions and helpers for json utils
+
+External Dependencies:
+- json_repair: [Documentation URL]
+- loguru: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 import json
 import os
 import json

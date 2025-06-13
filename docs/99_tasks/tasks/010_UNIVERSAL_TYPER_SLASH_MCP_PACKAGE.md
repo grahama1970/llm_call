@@ -100,7 +100,7 @@ perplexity_ask: "developer tool adoption strategies documentation"
 **Verification Method**:
 ```bash
 # In fresh environment
-pip install -i <internal-pypi> typer-slash-mcp
+uv add -i <internal-pypi> typer-slash-mcp
 
 # Create test CLI
 cat > test_cli.py << 'EOF'
@@ -250,7 +250,7 @@ python test_cli.py generate-claude
 
 | Action | Command | Result |
 |--------|---------|--------|
-| Install package | `pip install typer-slash-mcp` | Package ready to use |
+| Install package | `uv add typer-slash-mcp` | Package ready to use |
 | Add to CLI | `add_slash_mcp_commands(app)` | Slash/MCP commands added |
 | Generate commands | `python cli.py generate-claude` | `.claude/commands/*.md` created |
 | Start MCP server | `python cli.py serve-mcp` | MCP server running |

@@ -1,3 +1,23 @@
+"""
+Module: initialize_litellm_cache.py
+Description: Functions for initialize litellm cache operations
+
+External Dependencies:
+- litellm: [Documentation URL]
+- redis: https://redis-py.readthedocs.io/
+- loguru: [Documentation URL]
+- dotenv: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 import litellm
 import os
 import redis
@@ -59,7 +79,7 @@ def initialize_litellm_cache() -> None:
         )
         litellm.enable_cache()
         logger.info(
-            f"✅ LiteLLM Caching enabled using Redis at {redis_host}:{redis_port}"
+            f" LiteLLM Caching enabled using Redis at {redis_host}:{redis_port}"
         )
 
     except (redis.ConnectionError, redis.TimeoutError, redis.AuthenticationError) as e:
@@ -73,7 +93,7 @@ def initialize_litellm_cache() -> None:
             ttl=(60 * 60 * 1),
         )
         litellm.enable_cache()
-        logger.info("✅ LiteLLM Caching enabled using in-memory (local) cache.")
+        logger.info(" LiteLLM Caching enabled using in-memory (local) cache.")
     except Exception as e:
         logger.exception(f"Unexpected error during LiteLLM cache initialization: {e}")
 # --- Test Function (Kept for standalone testing) ---
@@ -85,7 +105,7 @@ def test_litellm_cache():
         # Test the cache with a simple completion call
         test_messages = [
             {"role": "user", "content": "What is the capital of France?"}
-        ]  # Make sure it's >1024 tokens
+        ]  # Make sure it's >1024 tokens'
         logger.info("Testing cache with completion call...")
 
         # First call should miss cache

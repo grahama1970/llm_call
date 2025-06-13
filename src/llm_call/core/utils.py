@@ -1,4 +1,6 @@
 """Utility functions for the LLM call module.
+Module: utils.py
+Description: Utility functions and helpers for utils
 
 Provides helper functions for configuration, validation, and report generation.
 """
@@ -162,7 +164,7 @@ def _create_markdown_report(report: Dict[str, Any]) -> str:
         
         if trace_dict['result']:
             result = trace_dict['result']
-            lines.append(f"- **Valid**: {'✓' if result['valid'] else '✗'}")
+            lines.append(f"- **Valid**: {'' if result['valid'] else ''}")
             
             if result['error']:
                 lines.append(f"- **Error**: {result['error']}")

@@ -1,20 +1,203 @@
 services:
+  # Main API service - the heart of llm_call
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    container_name: llm-call-api
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # Service URLs
+      - REDIS_URL=redis://redis:6379
+      - CLAUDE_PROXY_URL=http://claude-proxy:3010
+      # Feature flags
+      - ENABLE_RL_ROUTING=${ENABLE_RL_ROUTING:-true}
+      - ENABLE_LLM_VALIDATION=${ENABLE_LLM_VALIDATION:-true}
+      # API Keys from environment (optional)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    volumes:
+      # Application data
+      - ./config:/app/config:ro
+      - api-logs:/app/logs
+      - api-cache:/app/cache
+      # For development hot reload (uncomment if needed)
+      # - ./src:/app/src
+    depends_on:
+      redis:
+        condition: service_healthy
+      claude-proxy:
+        condition: service_healthy
+    networks:
+      - llm-call-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.litellm
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Claude CLI proxy for max/opus models
   claude-proxy:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: claude-proxy
+      dockerfile: docker/claude-proxy/Dockerfile
+    container_name: llm-call-claude-proxy
     ports:
       - "3010:3010"
     volumes:
-      - ./src:/app/src
-      - ./workspace:/workspace
+      # Mount Claude credentials directory for claude user (read-only)
+      - ~/.claude:/home/claude/.claude:ro
+      # Persist workspace between restarts
+      - claude-workspace:/app/claude_poc_workspace
     environment:
       - PYTHONUNBUFFERED=1
-
-  redis:
-    image: "redis:7-alpine"
-    container_name: redis
-    ports:
-      - "6379:6379"
+      - PYTHONPATH=/app
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - POC_SERVER_HOST=0.0.0.0
+      # Unset ANTHROPIC_API_KEY to force OAuth usage
+      - ANTHROPIC_API_KEY=
+    networks:
+      - llm-call-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Redis for caching and state
+  redis:
+    image: redis:7-alpine
+    container_name: llm-call-redis
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - llm-call-network
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # Optional: Ollama for local LLM inference (use --profile gpu)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: llm-call-ollama
+    profiles:
+      - gpu
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - llm-call-network
+    expose:
+      - "11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # Development tools (use --profile dev)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: llm-call-redis-commander
+    profiles:
+      - dev
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    networks:
+      - llm-call-network
+    depends_on:
+      - redis
+
+networks:
+  llm-call-network:
+    driver: bridge
+    name: llm-call-network
+
+volumes:
+  api-logs:
+    driver: local
+  api-cache:
+    driver: local
+  redis-data:
+    driver: local
+  claude-workspace:
+    driver: local
+  ollama-models:
+    driver: local

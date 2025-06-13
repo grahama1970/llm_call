@@ -1,5 +1,6 @@
 """
 Advanced validation strategies for LLM responses.
+Module: advanced_validators.py
 
 This module provides validators for common validation needs like
 length checking, regex matching, schema validation, and code validation.
@@ -457,12 +458,12 @@ if __name__ == "__main__":
         test_response["choices"][0]["message"]["content"] = "Short"
         result = await validator.validate(test_response, {})
         assert not result.valid
-        print(f"✅ Correctly rejected short text: {result.error}")
+        print(f" Correctly rejected short text: {result.error}")
         
         test_response["choices"][0]["message"]["content"] = "This is a longer text that meets the minimum length requirement."
         result = await validator.validate(test_response, {})
         assert result.valid
-        print("✅ Accepted valid length text")
+        print(" Accepted valid length text")
         
         # Test 2: Regex validator
         print("\nTest 2: Regex Validator")
@@ -471,12 +472,12 @@ if __name__ == "__main__":
         test_response["choices"][0]["message"]["content"] = "test@example.com"
         result = await email_validator.validate(test_response, {})
         assert result.valid
-        print("✅ Accepted valid email")
+        print(" Accepted valid email")
         
         test_response["choices"][0]["message"]["content"] = "not-an-email"
         result = await email_validator.validate(test_response, {})
         assert not result.valid
-        print(f"✅ Rejected invalid email: {result.error}")
+        print(f" Rejected invalid email: {result.error}")
         
         # Test 3: Contains validator
         print("\nTest 3: Contains Validator")
@@ -485,7 +486,7 @@ if __name__ == "__main__":
         test_response["choices"][0]["message"]["content"] = "python is a great PROGRAMMING language"
         result = await validator.validate(test_response, {})
         assert result.valid
-        print("✅ Found all required text (case-insensitive)")
+        print(" Found all required text (case-insensitive)")
         
         # Test 4: Code validator
         print("\nTest 4: Code Validator")
@@ -499,7 +500,7 @@ def hello(name):
 """
         result = await code_validator.validate(test_response, {})
         assert result.valid
-        print("✅ Accepted valid Python code")
+        print(" Accepted valid Python code")
         
         test_response["choices"][0]["message"]["content"] = """
 ```python
@@ -509,7 +510,7 @@ def broken(
 """
         result = await code_validator.validate(test_response, {})
         assert not result.valid
-        print(f"✅ Rejected invalid Python: {result.error}")
+        print(f" Rejected invalid Python: {result.error}")
         
         # Test 5: Field validator
         print("\nTest 5: Field Validator")
@@ -518,7 +519,7 @@ def broken(
         test_response["choices"][0]["message"]["content"] = '{"data": {"results": [1, 2, 3]}}'
         result = await field_validator.validate(test_response, {})
         assert result.valid
-        print("✅ Found required nested field")
+        print(" Found required nested field")
         
         # Test 6: Schema validator (if available)
         if HAS_JSONSCHEMA:
@@ -536,13 +537,13 @@ def broken(
             test_response["choices"][0]["message"]["content"] = '{"name": "Alice", "age": 30}'
             result = await schema_validator.validate(test_response, {})
             assert result.valid
-            print("✅ Valid JSON matches schema")
+            print(" Valid JSON matches schema")
             
             test_response["choices"][0]["message"]["content"] = '{"name": "Bob"}'
             result = await schema_validator.validate(test_response, {})
             assert not result.valid
-            print(f"✅ Rejected invalid JSON: {result.error}")
+            print(f" Rejected invalid JSON: {result.error}")
         
-        print("\n✅ All advanced validator tests passed!")
+        print("\n All advanced validator tests passed!")
     
     asyncio.run(test_validators())

@@ -1,5 +1,6 @@
 """
 Specialized validation strategies for specific use cases.
+Module: specialized_validators.py
 
 This module provides validators for domain-specific validation needs.
 """
@@ -311,7 +312,7 @@ def greet(name):
 """
         result = await python_validator.validate(test_response, {})
         assert result.valid
-        print("✅ Accepted valid Python code")
+        print(" Accepted valid Python code")
         
         # Test 2: SQL validator
         print("\nTest 2: SQL Validator")
@@ -325,7 +326,7 @@ ORDER BY order_count DESC;
 """
         result = await sql_validator.validate(test_response, {})
         assert result.valid
-        print("✅ Accepted valid SQL")
+        print(" Accepted valid SQL")
         
         # Test 3: SQL safety validator
         print("\nTest 3: SQL Safety Validator")
@@ -333,12 +334,12 @@ ORDER BY order_count DESC;
         test_response["choices"][0]["message"]["content"] = "SELECT * FROM users WHERE active = 1"
         result = await safety_validator.validate(test_response, {})
         assert result.valid
-        print("✅ Safe SQL accepted")
+        print(" Safe SQL accepted")
         
         test_response["choices"][0]["message"]["content"] = "DROP TABLE users"
         result = await safety_validator.validate(test_response, {})
         assert not result.valid
-        print(f"✅ Dangerous SQL rejected: {result.error}")
+        print(f" Dangerous SQL rejected: {result.error}")
         
         # Test 4: OpenAPI validator
         print("\nTest 4: OpenAPI Validator")
@@ -362,8 +363,8 @@ ORDER BY order_count DESC;
         })
         result = await openapi_validator.validate(test_response, {})
         assert result.valid
-        print("✅ Valid OpenAPI spec accepted")
+        print(" Valid OpenAPI spec accepted")
         
-        print("\n✅ All specialized validator tests passed!")
+        print("\n All specialized validator tests passed!")
     
     asyncio.run(test_specialized_validators())

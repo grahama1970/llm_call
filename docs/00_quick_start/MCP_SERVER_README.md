@@ -1,4 +1,4 @@
-# Claude Max Proxy MCP Server
+# LLM Call MCP Server
 
 This project can now be run as an MCP (Model Context Protocol) server, exposing its LLM routing and validation capabilities through a standardized API.
 
@@ -7,7 +7,7 @@ This project can now be run as an MCP (Model Context Protocol) server, exposing 
 ### 1. Run the MCP Server
 
 ```bash
-# From the claude_max_proxy directory
+# From the llm_call directory
 python run_mcp_server.py
 
 # Or using module
@@ -106,7 +106,7 @@ In your chat backend's `mcp_client.py`:
 
 ```python
 self.available_servers = {
-    "claude_max_proxy": {
+    "llm_call": {
         "url": "http://localhost:8001",
         "description": "Claude Code with enhanced capabilities and MCP tools"
     },
@@ -120,8 +120,8 @@ Add to your `docker-compose.yml`:
 
 ```yaml
 services:
-  claude-max-proxy:
-    build: ../claude_max_proxy
+  llm-call:
+    build: ../llm_call
     ports:
       - "8001:8001"
     environment:
@@ -130,7 +130,7 @@ services:
       - GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_TOKEN}
       - BRAVE_API_KEY=${BRAVE_API_KEY}
     volumes:
-      - ../claude_max_proxy:/app
+      - ../llm_call:/app
     command: python run_mcp_server.py
 ```
 
@@ -161,7 +161,7 @@ services:
 
 ```javascript
 // In your React chat component
-const response = await fetch('http://localhost:8000/api/mcp/claude_max_proxy/chat', {
+const response = await fetch('http://localhost:8000/api/mcp/llm_call/chat', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({

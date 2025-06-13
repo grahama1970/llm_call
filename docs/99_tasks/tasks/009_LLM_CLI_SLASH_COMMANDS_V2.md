@@ -147,7 +147,7 @@ ls -la .claude/commands/
 **Verification Method**:
 ```bash
 # Install FastMCP
-pip install fastmcp
+uv add fastmcp
 
 # Generate config
 python -m src.llm_call.cli.main generate-mcp-config

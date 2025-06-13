@@ -10,14 +10,14 @@ The router was passing 'provider' to the OpenAI API causing: BadRequestError: Un
 
 ### 1. Verify Fix in Source Code
 ```bash
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && grep -n "api_params.pop.*provider" src/llm_call/core/router.py'"
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && grep -n "api_params.pop.*provider" src/llm_call/core/router.py'"
 ```
 
 Expected output: Line showing api_params.pop("provider", None)
 
 ### 2. Test Router Removes Provider Key
 ```bash
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && source .venv/bin/activate && cd src && python -c "
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && source .venv/bin/activate && cd src && python -c "
 from llm_call.core.router import resolve_route
 test_config = {
     \"model\": \"gpt-4o-mini\",
@@ -38,7 +38,7 @@ else:
 
 ### 3. Test All Utility Keys Removed
 ```bash
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && source .venv/bin/activate && cd src && python -c "
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && source .venv/bin/activate && cd src && python -c "
 from llm_call.core.router import resolve_route
 test_config = {
     \"model\": \"gpt-4\",
@@ -65,7 +65,7 @@ if all_removed:
 
 ### 4. Integration Test - No Provider Error
 ```bash
-claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/claude_max_proxy/ && source .venv/bin/activate && cd src && python -c "
+claude code "ssh -i ~/.ssh/id_ed25519_wsl2 graham@192.168.86.49 'cd /home/graham/workspace/experiments/llm_call/ && source .venv/bin/activate && cd src && python -c "
 import asyncio
 from llm_call.core.caller import make_llm_request
 from llm_call.core.utils.initialize_litellm_cache import initialize_litellm_cache

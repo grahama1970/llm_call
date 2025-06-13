@@ -1,7 +1,4 @@
 """
-MCP Server implementation for claude_max_proxy
-Exposes LLM routing and validation capabilities as an MCP service
-"""
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -10,6 +7,9 @@ import json
 import asyncio
 import os
 from pathlib import Path
+Module: mcp_server.py
+Description: Implementation of mcp server functionality
+Description: Implementation of mcp server functionality
 
 from llm_call.api import call as llm_call
 from llm_call.core.api.mcp_handler_wrapper import MCPHandler
@@ -39,6 +39,9 @@ class ChatRequest(BaseModel):
 @app.post("/mcp/execute")
 async def execute_mcp_command(request: MCPRequest):
     """Main MCP endpoint that routes commands"""
+"""
+MCP Server implementation for llm_call
+Exposes LLM routing and validation capabilities as an MCP service
     
     command = request.command
     params = request.params
@@ -308,7 +311,7 @@ async def get_mcp_info():
     mcp_servers = mcp_handler.get_available_servers()
     
     return {
-        "name": "claude_max_proxy",
+        "name": "llm_call",
         "version": "1.0.0",
         "description": "Advanced LLM routing with Claude Code integration and MCP tool support",
         "capabilities": {

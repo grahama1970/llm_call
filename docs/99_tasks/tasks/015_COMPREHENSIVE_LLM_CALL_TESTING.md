@@ -4,7 +4,7 @@
 
 **Requirements**:
 1. Test all LiteLLM supported models with various configurations
-2. Test Claude Max proxy option thoroughly
+2. Test LLM Call proxy option thoroughly
 3. Validate all verification strategies work correctly
 4. Test JSON and non-JSON response formats
 5. Verify error handling and edge cases

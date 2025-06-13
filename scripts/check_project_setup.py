@@ -1,3 +1,17 @@
+"""
+Module: check_project_setup.py
+Description: Implementation of check project setup functionality
+
+Sample Input:
+>>> # See function docstrings for specific examples
+
+Expected Output:
+>>> # See function docstrings for expected results
+
+Example Usage:
+>>> # Import and use as needed based on module functionality
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -87,7 +101,7 @@ def check_pythonpath_and_dotenv():
         log_success(f"Expected src path '{EXPECTED_PYTHONPATH_TARGET.resolve()}' IS in sys.path.")
     else:
         log_error(f"Expected src path '{EXPECTED_PYTHONPATH_TARGET.resolve()}' IS NOT in sys.path. This will likely cause import errors for '{MAIN_PACKAGE_NAME}'.")
-        log_info("Consider running 'uv pip install -e .' or setting PYTHONPATH correctly for your execution environment.")
+        log_info("Consider running 'uv uv add -e .' or setting PYTHONPATH correctly for your execution environment.")
 
 
 def check_init_files(start_path: Path, package_prefix=""):
@@ -199,7 +213,7 @@ if __name__ == "__main__":
         log_info(f"Package path(s): {getattr(imported_package, '__path__', 'N/A')}")
     except ModuleNotFoundError:
         log_error(f"Failed to import main package '{MAIN_PACKAGE_NAME}'. ModuleNotFoundError.")
-        log_info("Ensure your project is installed (e.g., `uv pip install -e .`) or PYTHONPATH is set correctly.")
+        log_info("Ensure your project is installed (e.g., `uv uv add -e .`) or PYTHONPATH is set correctly.")
     except ImportError as e:
         log_error(f"Failed to import main package '{MAIN_PACKAGE_NAME}'. ImportError: {e}")
         log_info("This might indicate an issue within an __init__.py file of the package itself.")

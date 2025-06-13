@@ -1,0 +1,37 @@
+services:
+  claude-proxy:
+    build:
+      context: .
+      dockerfile: docker/claude-proxy/Dockerfile
+    container_name: llm-call-claude-proxy
+    ports:
+      - "3010:3010"
+    volumes:
+      # Mount Claude credentials directory (read-write for authentication)
+      - ~/.claude:/root/.claude
+      # Persist workspace between restarts
+      - claude-workspace:/app/claude_poc_workspace
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      # Unset ANTHROPIC_API_KEY to force OAuth usage
+      - ANTHROPIC_API_KEY=
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: "redis:7-alpine"
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  claude-workspace:
+    driver: local

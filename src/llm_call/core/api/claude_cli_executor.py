@@ -1,5 +1,7 @@
 """
 Claude CLI executor module.
+Module: claude_cli_executor.py
+Description: Functions for claude cli executor operations
 
 This module handles the execution of Claude CLI commands via subprocess,
 capturing and parsing the JSON stream output.
@@ -11,7 +13,7 @@ Sample usage:
     response = execute_claude_cli(prompt="Hello", system_prompt_content="Be helpful", ...)
 
 Expected output:
-    String containing Claude's response or error message
+    String containing Claude's response or error message'
 """
 
 import json
@@ -38,17 +40,17 @@ def execute_claude_cli(
     
     This function runs the Claude CLI as a subprocess, captures its JSON
     stream output, and extracts the response text. This is migrated from
-    the POC's execute_claude_cli_for_poc function.
+    the POC's execute_claude_cli_for_poc function.'
     
     Args:
-        prompt: User's prompt/question
+        prompt: User's prompt/question'
         system_prompt_content: System prompt for Claude
         target_dir: Working directory for Claude CLI
         claude_exe_path: Path to Claude executable
         timeout: Maximum time to wait for response
         
     Returns:
-        Claude's response text or error message
+        Claude's response text or error message'
     """
     logger.info(f"[Claude Executor] Attempting to execute Claude CLI")
     
@@ -250,7 +252,7 @@ if __name__ == "__main__":
             )
             
             if response and "test successful" in response.lower():
-                logger.success(f"✅ Claude CLI execution works: {response[:100]}...")
+                logger.success(f" Claude CLI execution works: {response[:100]}...")
             else:
                 all_validation_failures.append(f"Unexpected response: {response}")
         except Exception as e:
@@ -271,16 +273,16 @@ if __name__ == "__main__":
         )
         
         assert "Claude CLI not found" in response
-        logger.success("✅ Missing executable error handling works")
+        logger.success(" Missing executable error handling works")
     except Exception as e:
         all_validation_failures.append(f"Error handling test failed: {e}")
     
     # Final validation result
     if all_validation_failures:
-        logger.error(f"❌ VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
+        logger.error(f" VALIDATION FAILED - {len(all_validation_failures)} of {total_tests} tests failed:")
         for failure in all_validation_failures:
             logger.error(f"  - {failure}")
         sys.exit(1)
     else:
-        logger.success(f"✅ VALIDATION PASSED - All {total_tests} tests produced expected results")
+        logger.success(f" VALIDATION PASSED - All {total_tests} tests produced expected results")
         sys.exit(0)

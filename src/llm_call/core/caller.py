@@ -1,5 +1,7 @@
 """
 Core caller module - main entry point for LLM requests.
+Module: caller.py
+Description: Functions for caller operations
 
 This module provides the make_llm_request function which handles preprocessing,
 routing, and execution of LLM calls.
@@ -16,6 +18,7 @@ Expected output:
 """
 
 import copy
+import os
 from typing import Dict, Any, List, Union, Optional
 from loguru import logger
 
@@ -188,9 +191,11 @@ async def make_llm_request(llm_config: Dict[str, Any]) -> Union[Dict[str, Any], 
         # Get response format for validation and provider calls
         response_format = processed_config.get("response_format")
         
-        # Add default validators if none specified
-        if not validation_strategies:
-            # Always use ResponseNotEmptyValidator as default
+        # Add default validators if none specified AND validation is enabled
+        enable_validation = os.getenv('ENABLE_LLM_VALIDATION', 'true').lower() == 'true'
+        
+        if not validation_strategies and enable_validation:
+            # Only add default validators if validation is enabled
             validation_strategies.append(ResponseNotEmptyValidator())
             
             # Add JSON validator if JSON response format requested

@@ -44,7 +44,7 @@ Created comprehensive `tests/README.md` with:
 ### Current Project Structure
 
 ```
-claude_max_proxy/
+llm_call/
 ├── archive/              # Archived files
 │   ├── debug/           # Debug files
 │   ├── poc/             # POC files

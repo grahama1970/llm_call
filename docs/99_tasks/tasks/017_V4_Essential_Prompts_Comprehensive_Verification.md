@@ -70,7 +70,7 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 **Documentation Links**:
 - Claude Code Overview: https://docs.anthropic.com/en/docs/claude-code/overview
 - Claude Code Best Practices: https://docs.anthropic.com/en/docs/claude-code/best-practices
-- Internal Standards: /home/graham/workspace/experiments/claude_max_proxy/CLAUDE.md
+- Internal Standards: /home/graham/workspace/experiments/llm_call/CLAUDE.md
 
 **Implementation Steps**:
 - [ ] 0.1 Read and understand CLAUDE.md
@@ -82,7 +82,7 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 
 - [ ] 0.2 Setup test environment
   - SSH to graham@192.168.86.49
-  - Navigate to /home/graham/workspace/experiments/claude_max_proxy/
+  - Navigate to /home/graham/workspace/experiments/llm_call/
   - Read .env file for environment variables
   - Activate .venv virtual environment
   - Verify Python version and dependencies
@@ -102,8 +102,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 - LiteLLM Basic Usage: https://docs.litellm.ai/docs/
 - LiteLLM Completion: https://docs.litellm.ai/docs/completion/input
 - Async Testing Guide: https://docs.litellm.ai/docs/completion/async
-- Test Prompts Validation: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
-- Relevant Code: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/main.py
+- Test Prompts Validation: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
+- Relevant Code: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/main.py
 
 **Test Case Details**:
 - Model: max/text-general
@@ -167,8 +167,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 **Documentation Links**:
 - LiteLLM Messages Format: https://docs.litellm.ai/docs/completion/input#messages
 - OpenAI Messages Format: https://docs.litellm.ai/docs/providers/openai#openai-chat-completion
-- Test Format Examples: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
-- Message Conversion Code: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/utils.py
+- Test Format Examples: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
+- Message Conversion Code: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/utils.py
 
 **Test Case Details**:
 - Model: max/text-general
@@ -197,8 +197,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 **Documentation Links**:
 - LiteLLM System Messages: https://docs.litellm.ai/docs/completion/input#messages
 - Claude System Prompts: https://docs.anthropic.com/en/docs/claude-code/system-prompts
-- Multi-Message Handling: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/llms/anthropic.py
-- Internal Validation Guide: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
+- Multi-Message Handling: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/llms/anthropic.py
+- Internal Validation Guide: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
 
 **Test Case Details**:
 - Model: max/text-general
@@ -228,8 +228,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 - Claude Code Agent Tasks: https://docs.anthropic.com/en/docs/claude-code/agent-tasks
 - LiteLLM Response Validation: https://docs.litellm.ai/docs/completion/reliable_completions
 - Code Generation Patterns: https://docs.litellm.ai/docs/completion/function_call
-- Agent Validation Implementation: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
-- Validation Code: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/integrations/
+- Agent Validation Implementation: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
+- Validation Code: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/integrations/
 
 **Test Case Details**:
 - Model: max/code-expert
@@ -258,8 +258,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 - Claude MCP Integration: https://docs.anthropic.com/en/docs/claude-code/mcp
 - LiteLLM Tools Support: https://docs.litellm.ai/docs/completion/function_call
 - MCP Server Config: https://docs.anthropic.com/en/docs/claude-code/mcp-servers
-- File Operations Guide: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
-- Retry Implementation: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/router.py
+- File Operations Guide: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
+- Retry Implementation: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/router.py
 
 **Test Case Details**:
 - Model: max/claude-mcp-agent
@@ -290,8 +290,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 **Documentation Links**:
 - LiteLLM JSON Mode: https://docs.litellm.ai/docs/completion/json_mode
 - Response Format Enforcement: https://docs.litellm.ai/docs/completion/response_format
-- JSON Validation Patterns: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
-- JSON Parsing Code: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/utils.py
+- JSON Validation Patterns: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
+- JSON Parsing Code: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/utils.py
 
 **Test Case Details**:
 - Model: max/json-expert
@@ -320,7 +320,7 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 - LiteLLM OpenAI Compatibility: https://docs.litellm.ai/docs/providers/openai
 - OpenAI Provider Setup: https://docs.litellm.ai/docs/providers/openai#api-keys
 - Model Routing: https://docs.litellm.ai/docs/routing
-- OpenAI Implementation: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/llms/openai.py
+- OpenAI Implementation: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/llms/openai.py
 
 **Test Case Details**:
 - Model: gpt-3.5-turbo
@@ -348,8 +348,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 **Documentation Links**:
 - LiteLLM Retry Logic: https://docs.litellm.ai/docs/completion/reliable_completions
 - Fallback Strategies: https://docs.litellm.ai/docs/routing#fallbacks
-- Validation Retry Patterns: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
-- Retry Implementation: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/litellm/router.py
+- Validation Retry Patterns: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
+- Retry Implementation: /home/graham/workspace/experiments/llm_call/repos/litellm/litellm/router.py
 
 **Test Case Details**:
 - Model: max/text-general
@@ -378,7 +378,7 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 - LiteLLM Performance: https://docs.litellm.ai/docs/observability/
 - Load Testing Guide: https://docs.litellm.ai/docs/load_test
 - Async Performance: https://docs.litellm.ai/docs/completion/async
-- Benchmark Examples: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/tests/
+- Benchmark Examples: /home/graham/workspace/experiments/llm_call/repos/litellm/tests/
 
 **Implementation Steps**:
 - [ ] 9.1 Run all tests sequentially
@@ -412,8 +412,8 @@ perplexity_ask: "testing async Python code with timeouts best practices"
 **Documentation Links**:
 - Claude Code Testing: https://docs.anthropic.com/en/docs/claude-code/testing
 - LiteLLM Testing: https://docs.litellm.ai/docs/testing
-- Comprehensive Validation: /home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md
-- Test Suite Examples: /home/graham/workspace/experiments/claude_max_proxy/repos/litellm/tests/
+- Comprehensive Validation: /home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md
+- Test Suite Examples: /home/graham/workspace/experiments/llm_call/repos/litellm/tests/
 
 **Implementation Steps**:
 - [ ] 10.1 Review all task reports

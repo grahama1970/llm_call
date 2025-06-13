@@ -1,8 +1,97 @@
-# Claude Max Proxy - Universal LLM Interface with Multi-Model Collaboration
+# LLM Call - Universal LLM Interface with Multi-Model Collaboration
 
 A flexible command-line tool and library that enables **fluid conversational collaboration between different LLM models**. Claude can delegate to Gemini for large documents, GPT-4 for specific tasks, or any other model - all while maintaining conversation context.
 
 **This is a SPOKE module** - it makes LLM calls and is orchestrated by the HUB ([claude-module-communicator](https://github.com/grahamwetzler/claude-module-communicator)).
+
+## 🐳 Quick Start with Docker
+
+The easiest way to run llm_call is using Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/grahama1970/llm_call.git
+cd llm_call
+
+# Copy environment template
+cp .env.example .env
+# Edit .env with your API keys
+
+# Start all services
+docker compose up -d
+
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# For Claude Max users: Authenticate Claude CLI
+./docker/claude-proxy/authenticate.sh
+# Test authentication
+./docker/claude-proxy/test_claude.sh
+
+# Optional: Install convenient aliases
+./scripts/install_claude_aliases.sh
+# Then use: claude-auth, claude-test, claude-status
+# See docker/claude-proxy/AUTHENTICATION.md for details
+```
+
+### Accessing Services
+
+- **API**: http://localhost:8001
+- **API Docs**: http://localhost:8001/docs
+- **Health Check**: http://localhost:8001/health
+- **Claude Proxy**: http://localhost:3010 (for max/opus models)
+
+### Testing the API
+
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# Test request with OpenAI
+curl -X POST http://localhost:8001/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+### Using Claude Max
+
+If you have a Claude Max subscription:
+
+1. **First-time setup** - Authenticate Claude CLI:
+```bash
+# Option 1: Use the helper script (recommended)
+./docker/claude-proxy/authenticate.sh
+
+# Option 2: Manual authentication
+docker exec -it llm-call-claude-proxy /bin/bash
+claude  # Launch Claude Code and authenticate
+```
+
+2. Use the max/opus models:
+```python
+from llm_call import make_llm_request
+
+response = await make_llm_request({
+    "model": "max/claude-3-opus-20240229",
+    "messages": [{"role": "user", "content": "Hello!"}]
+})
+```
+
+### Docker Profiles
+
+```bash
+# Run with GPU support (for local Ollama)
+docker compose --profile gpu up -d
+
+# Run with development tools
+docker compose --profile dev up -d
+```
 
 ## 🎯 Core Capabilities
 
@@ -15,7 +104,7 @@ A flexible command-line tool and library that enables **fluid conversational col
 ### 2. Intelligent Routing
 - **Automatic Model Selection**: Routes to appropriate provider based on task
 - **Context-Aware Delegation**: Automatically delegates when context limits are exceeded
-- **Provider Support**: OpenAI, Anthropic, Google Vertex AI, Ollama, and more
+- **Provider Support**: OpenAI, Anthropic, Google Vertex AI, Ollama, Runpod, and more
 
 ### 3. Response Validation
 - **16 Built-in Validators**: JSON, code, schema, length, regex, and more
@@ -49,6 +138,8 @@ result = await conversational_delegate(
 
 ### Environment Setup
 
+#### Local Development
+
 ```bash
 # Required: Set PYTHONPATH and load environment
 export PYTHONPATH=./src
@@ -59,6 +150,36 @@ source .venv/bin/activate
 # - OPENAI_API_KEY (for GPT models)
 # - GOOGLE_APPLICATION_CREDENTIALS (for Vertex AI/Gemini)
 # - ANTHROPIC_API_KEY (for Claude API calls - currently empty)
+```
+
+#### Docker Environment
+
+Create a `.env` file with your API keys:
+
+```bash
+# LLM Provider Keys
+OPENAI_API_KEY=your_key_here
+GOOGLE_API_KEY=your_key_here  # For Gemini
+ANTHROPIC_API_KEY=your_key_here  # For Claude API (optional)
+
+# Service Configuration
+REDIS_URL=redis://redis:6379
+CLAUDE_PROXY_URL=http://claude-proxy:3010
+ENABLE_RL_ROUTING=true
+ENABLE_LLM_VALIDATION=false
+
+# Optional Tool Keys
+PERPLEXITY_API_KEY=your_key_here
+BRAVE_API_KEY=your_key_here
+GITHUB_TOKEN=your_token_here
+```
+
+For Vertex AI in Docker, mount your service account:
+```yaml
+volumes:
+  - ./vertex_ai_service_account.json:/app/vertex_ai_service_account.json:ro
+environment:
+  - GOOGLE_APPLICATION_CREDENTIALS=/app/vertex_ai_service_account.json
 ```
 
 ## 📚 Key Features for Orchestration
@@ -103,6 +224,7 @@ response = await make_llm_request(config)
 # - "vertex_ai/gemini-1.5-pro" -> Gemini with 1M context
 # - "gpt-4", "gpt-3.5-turbo" -> OpenAI
 # - "ollama/llama3.2" -> Local models
+# - "runpod/pod-id/llama-3-70b" -> Runpod hosted models (30-70B)
 ```
 
 ### 3. Validation Integration
@@ -188,6 +310,7 @@ from llm_call.core.strategies import get_validator
 - ✅ **Vertex AI/Gemini 1.5 Pro**: 1M context window
 - ✅ **OpenAI GPT-4/GPT-3.5**: General purpose
 - ✅ **Claude CLI**: Via `max/` prefix
+- ✅ **Runpod**: Host 30-70B models via `runpod/` prefix
 - ✅ **Perplexity**: For web search (via MCP)
 - ❌ **Anthropic API**: Key missing in .env (line 15)
 
@@ -232,13 +355,13 @@ conv_id = await manager.create_conversation("Research: Quantum Computing 2024")
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/claude_max_proxy.git
-cd claude_max_proxy
+git clone https://github.com/yourusername/llm_call.git
+cd llm_call
 
 # Setup environment
 python -m venv .venv
 source .venv/bin/activate
-pip install -e .
+uv add -e .
 
 # Configure API keys in .env
 cp .env.example .env
@@ -248,7 +371,7 @@ cp .env.example .env
 ## 📋 File Structure
 
 ```
-claude_max_proxy/
+llm_call/
 ├── src/llm_call/
 │   ├── core/
 │   │   ├── caller.py              # Main LLM request handler
@@ -288,4 +411,4 @@ The HUB can use this module to:
 
 ---
 
-*Claude Max Proxy - Enabling fluid collaboration between AI models*
+*LLM Call - Enabling fluid collaboration between AI models*

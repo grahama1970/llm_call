@@ -1,5 +1,6 @@
 """
 LiteLLM provider implementation.
+Module: litellm_provider.py
 
 This provider handles direct LiteLLM calls for models like Vertex AI, OpenAI, etc.
 
@@ -20,6 +21,7 @@ from loguru import logger
 
 from llm_call.core.providers.base_provider import BaseLLMProvider
 from llm_call.core.config.loader import load_configuration
+from llm_call.core.utils.auth_diagnostics import diagnose_auth_error
 
 # Load settings at module level
 settings = load_configuration()
@@ -74,12 +76,31 @@ class LiteLLMProvider(BaseLLMProvider):
             logger.debug(f"[LiteLLMProvider] Success for model: {model_name}")
             return response
             
-        except litellm.exceptions.BadRequestError as e:
-            logger.error(f"[LiteLLMProvider] BadRequestError for '{model_name}': {e}")
-            logger.error(f"Request params: {api_params}")
+        except litellm.exceptions.AuthenticationError as e:
+            # Enhanced error handling for authentication issues
+            logger.error(f"[LiteLLMProvider] Authentication error for '{model_name}'")
+            diagnose_auth_error(e, model_name, context={"api_params": api_params})
             raise
+            
+        except litellm.exceptions.BadRequestError as e:
+            # Check if this is actually an auth error in disguise
+            error_str = str(e).lower()
+            if any(auth_term in error_str for auth_term in ["jwt", "token", "unauthorized", "forbidden", "401", "403"]):
+                logger.error(f"[LiteLLMProvider] Authentication-related bad request for '{model_name}'")
+                diagnose_auth_error(e, model_name, context={"api_params": api_params})
+            else:
+                logger.error(f"[LiteLLMProvider] BadRequestError for '{model_name}': {e}")
+                logger.error(f"Request params: {api_params}")
+            raise
+            
         except Exception as e:
-            logger.warning(f"[LiteLLMProvider] Error for '{model_name}': {type(e).__name__} - {e}")
+            # Check for auth-related errors in generic exceptions
+            error_str = str(e).lower()
+            if any(auth_term in error_str for auth_term in ["jwt", "token", "auth", "credential", "forbidden", "unauthorized"]):
+                logger.error(f"[LiteLLMProvider] Possible authentication error for '{model_name}'")
+                diagnose_auth_error(e, model_name, context={"api_params": api_params})
+            else:
+                logger.warning(f"[LiteLLMProvider] Error for '{model_name}': {type(e).__name__} - {e}")
             raise
 
 

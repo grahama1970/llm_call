@@ -1,50 +1,63 @@
-"""
-LLM Call - Universal LLM Interface with Smart Validation
+"""LLM Call - Unified interface for language model access"""
 
-A flexible library that lets you interact with any LLM through a unified interface.
-"""
+from typing import Optional, Dict, Any, List
 
-# Core functionality
-from llm_call.core.caller import make_llm_request
-from llm_call.core.base import ValidationResult, ValidationStrategy
-from llm_call.core.retry import retry_with_validation, RetryConfig
-from llm_call.core.strategies import registry, validator
-from llm_call.core.config.loader import load_configuration
+# Import core functionality
+try:
+    from .core.caller import make_llm_request
+    from .core.base import ValidationError
+except ImportError:
+    make_llm_request = None
+    ValidationError = Exception
 
-# Convenience API
-from llm_call.api import (
-    ask,
-    chat,
-    call,
-    ask_sync,
-    chat_sync,
-    call_sync,
-    register_validator,
-    ChatSession
-)
+# Import API functions
+try:
+    from .api import ask, chat, call, ask_sync, chat_sync, call_sync, ChatSession, register_validator
+except ImportError as e:
+    # If imports fail, provide None fallbacks
+    ask = None
+    chat = None
+    call = None
+    ask_sync = None
+    chat_sync = None
+    call_sync = None
+    ChatSession = None
+    register_validator = None
 
-# Version
+# Convenience wrapper
+async def llm_call(
+    prompt: str,
+    model: Optional[str] = None,
+    max_tokens: int = 1000,
+    temperature: float = 0.7,
+    **kwargs
+) -> Any:
+    """Make a call to an LLM with simple interface."""
+    if make_llm_request is None:
+        raise ImportError("LLM Call core not properly installed")
+    
+    config = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        **kwargs
+    }
+    
+    return await make_llm_request(config)
+
+# Export main interfaces
 __version__ = "1.0.0"
-
-# Public API
 __all__ = [
-    # Convenience functions (matches README)
+    "llm_call", 
+    "make_llm_request", 
+    "ValidationError",
     "ask",
     "chat",
     "call",
     "ask_sync",
-    "chat_sync", 
+    "chat_sync",
     "call_sync",
     "ChatSession",
-    "register_validator",
-    
-    # Core functionality
-    "make_llm_request",
-    "ValidationResult",
-    "ValidationStrategy",
-    "retry_with_validation",
-    "RetryConfig",
-    "registry",
-    "validator",
-    "load_configuration",
+    "register_validator"
 ]

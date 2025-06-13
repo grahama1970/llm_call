@@ -1,11 +1,11 @@
-# Task List: Claude Max Proxy MCP Integration for Natrium
+# Task List: LLM Call MCP Integration for Natrium
 
 ## Overview
-This task list defines the necessary changes to make the Claude Max Proxy project easily available as an MCP tool for the Natrium orchestrator. This project is CRITICAL as it enables nested Claude instances with full MCP tool access.
+This task list defines the necessary changes to make the LLM Call project easily available as an MCP tool for the Natrium orchestrator. This project is CRITICAL as it enables nested Claude instances with full MCP tool access.
 
 ## Core Principle: Enable Nested Claude Instances with Full MCP Access
 
-The Natrium project needs Claude Max Proxy to launch background Claude instances that can access ALL MCP tools for research, validation, and complex workflows.
+The Natrium project needs LLM Call to launch background Claude instances that can access ALL MCP tools for research, validation, and complex workflows.
 
 ## Task 1: Ensure /max Model Prefix Support
 

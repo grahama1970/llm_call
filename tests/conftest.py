@@ -1,4 +1,27 @@
-"""Pytest configuration and fixtures for test reporting."""
+"""
+Module: conftest.py
+
+External Dependencies:
+- pytest: https://docs.pytest.org/
+- litellm: https://docs.litellm.ai/
+
+Sample Input:
+>>> # See function docstrings for specific examples
+
+Expected Output:
+>>> # See function docstrings for expected results
+
+Example Usage:
+>>> # Import and use as needed based on module functionality
+"""
+
+import sys
+from pathlib import Path
+
+# Add src to path for imports
+src_path = Path(__file__).parent.parent / "src"
+if src_path.exists() and str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 import pytest
 import json
@@ -10,7 +33,6 @@ from typing import Dict, List, Any
 # Initialize LiteLLM cache before any tests run
 from llm_call.core.utils.initialize_litellm_cache import initialize_litellm_cache
 initialize_litellm_cache()
-
 
 class MarkdownReporter:
     """Custom pytest plugin for generating Markdown test reports."""
@@ -193,7 +215,7 @@ class MarkdownReporter:
         with open(filename, 'w') as f:
             f.write('\n'.join(content))
             
-        print(f"\n📊 Test report generated: {filename}")
+        print(f"\n Test report generated: {filename}")
         
         # Also create a latest symlink for easy access
         latest_link = reports_dir / "test_report_latest.md"
@@ -201,18 +223,15 @@ class MarkdownReporter:
             latest_link.unlink()
         latest_link.symlink_to(filename.name)
 
-
 def pytest_configure(config):
     """Register the custom reporter plugin."""
     config.pluginmanager.register(MarkdownReporter(), "markdown_reporter")
-
 
 # Common fixtures
 @pytest.fixture
 def test_data_dir():
     """Path to test data directory."""
     return Path(__file__).parent / "fixtures"
-
 
 @pytest.fixture
 def user_prompts(test_data_dir):
@@ -224,7 +243,6 @@ def user_prompts(test_data_dir):
             for line in f:
                 prompts.append(json.loads(line.strip()))
     return prompts
-
 
 @pytest.fixture
 def extended_user_prompts(test_data_dir):

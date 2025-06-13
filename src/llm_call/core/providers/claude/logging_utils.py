@@ -1,3 +1,21 @@
+"""
+Module: logging_utils.py
+Description: Utility functions and helpers for logging utils
+
+External Dependencies:
+- loguru: [Documentation URL]
+- claude_comms: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 # src/claude_comms/inter_module_communicator/core/logging_utils.py
 """
 Logging utilities for the Inter-Module Communicator, using Loguru.

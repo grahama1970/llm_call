@@ -5,7 +5,7 @@
 ### 1. Test the Async Implementation
 Run the async test suite to verify all essential cases work:
 
-    cd /home/graham/workspace/experiments/claude_max_proxy/
+    cd /home/graham/workspace/experiments/llm_call/
     source .venv/bin/activate
     python test_v4_essential_async.py
 

@@ -1,5 +1,6 @@
 """
 Staged Retry Manager with Escalation
+Module: retry_manager.py
 
 This module implements a sophisticated retry mechanism with three stages:
 1. Basic retry attempts (standard retries)
@@ -292,12 +293,12 @@ if __name__ == "__main__":
         
     async def tool_callback(context: RetryContext):
         """Callback when entering tool-assisted stage"""
-        print(f"🔧 Entering tool-assisted stage after {context.attempt_count} attempts")
+        print(f" Entering tool-assisted stage after {context.attempt_count} attempts")
         context.tool_results = {"multiplier_tool": "available"}
         
     async def human_callback(context: RetryContext):
         """Callback when entering human review stage"""
-        print(f"👤 Escalating to human review after {context.attempt_count} attempts")
+        print(f" Escalating to human review after {context.attempt_count} attempts")
         print(f"Validation errors: {len(context.validation_errors)}")
         
     async def main():
@@ -324,10 +325,10 @@ if __name__ == "__main__":
                 validate_result,
                 value=15
             )
-            print(f"✅ Success: {result}")
+            print(f" Success: {result}")
             print(f"Final stage: {context1.current_stage.value}")
         except Exception as e:
-            print(f"❌ Failed: {e}")
+            print(f" Failed: {e}")
             
         # Test 2: Success with tool assistance
         print("\n=== Test 2: Tool-Assisted Success ===")
@@ -339,11 +340,11 @@ if __name__ == "__main__":
                 validate_result,
                 value=3
             )
-            print(f"✅ Success: {result}")
+            print(f" Success: {result}")
             print(f"Final stage: {context2.current_stage.value}")
             print(f"Total attempts: {context2.attempt_count}")
         except Exception as e:
-            print(f"❌ Failed: {e}")
+            print(f" Failed: {e}")
             
         # Test 3: Human review needed
         print("\n=== Test 3: Human Review Escalation ===")
@@ -355,13 +356,13 @@ if __name__ == "__main__":
                 validate_result,
                 value=1
             )
-            print(f"✅ Success: {result}")
+            print(f" Success: {result}")
         except HumanReviewNeededError as e:
-            print(f"👤 Human review required: {e}")
+            print(f" Human review required: {e}")
             print(f"Total errors: {len(e.validation_errors)}")
             print(f"Stage history: {[s.value for s in context3.stage_history]}")
         except Exception as e:
-            print(f"❌ Unexpected error: {e}")
+            print(f" Unexpected error: {e}")
             
         # Test 4: Configuration validation
         print("\n=== Test 4: Config Validation ===")
@@ -372,8 +373,8 @@ if __name__ == "__main__":
                 max_attempts_before_human=3  # Invalid: tool > human
             )
         except ValueError as e:
-            print(f"✅ Config validation caught error: {e}")
+            print(f" Config validation caught error: {e}")
             
-        print("\n✅ All tests completed")
+        print("\n All tests completed")
         
     asyncio.run(main())

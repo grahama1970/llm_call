@@ -6,15 +6,15 @@ Documentation links have been successfully added to all tasks in `/docs/tasks/01
 
 1. **LiteLLM Documentation** (https://docs.litellm.ai/docs/)
 2. **Claude Code Documentation** (https://docs.anthropic.com/en/docs/claude-code/)
-3. **Internal Documentation** (/home/graham/workspace/experiments/claude_max_proxy/docs/004_Tasks_Test_Prompts_Validation.md)
-4. **LiteLLM Source Code** (/home/graham/workspace/experiments/claude_max_proxy/repos/litellm/)
+3. **Internal Documentation** (/home/graham/workspace/experiments/llm_call/docs/004_Tasks_Test_Prompts_Validation.md)
+4. **LiteLLM Source Code** (/home/graham/workspace/experiments/llm_call/repos/litellm/)
 
 ## Links Added by Task
 
 ### Task 0: Read CLAUDE.md and Setup Environment
 - Claude Code Overview: https://docs.anthropic.com/en/docs/claude-code/overview
 - Claude Code Best Practices: https://docs.anthropic.com/en/docs/claude-code/best-practices
-- Internal Standards: /home/graham/workspace/experiments/claude_max_proxy/CLAUDE.md
+- Internal Standards: /home/graham/workspace/experiments/llm_call/CLAUDE.md
 
 ### Task 1: Verify max_text_001_simple_question
 - LiteLLM Basic Usage: https://docs.litellm.ai/docs/

@@ -1,5 +1,6 @@
 """
 AI-assisted validation strategies.
+Module: ai_validators.py
 
 This module contains validators that make recursive LLM calls to validate responses.
 
@@ -294,7 +295,7 @@ class AgentTaskValidator(AIAssistedValidator):
             context: Validation context
             
         Returns:
-            ValidationResult based on agent's task execution
+            ValidationResult based on agent's task execution'
         """
         logger.info(f"[{self.name}] Sending validation task to agent")
         
@@ -390,21 +391,21 @@ if __name__ == "__main__":
             text_to_check="The Earth is flat and also round at the same time.",
             topic_context="Earth shape theories"
         )
-        print(f"✅ Created contradiction validator: {validator.name}")
+        print(f" Created contradiction validator: {validator.name}")
         
         # Test agent task validator
         task_validator = AgentTaskValidator(
             task_prompt="Check if the response contains valid Python code",
             required_mcp_tools=["desktop-commander"]
         )
-        print(f"✅ Created agent task validator: {task_validator.name}")
+        print(f" Created agent task validator: {task_validator.name}")
         
         # Test without LLM caller set
         result = await validator.validate("test response", {})
         assert not result.valid
         assert "LLM caller not set" in result.error
-        print("✅ Validator correctly handles missing LLM caller")
+        print(" Validator correctly handles missing LLM caller")
         
-        print("\n✅ All AI validator tests passed!")
+        print("\n All AI validator tests passed!")
     
     asyncio.run(test_validators())

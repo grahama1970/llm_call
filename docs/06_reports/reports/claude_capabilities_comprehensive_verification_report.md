@@ -1,4 +1,4 @@
-# Claude Max Proxy - Comprehensive Capability Verification Report
+# LLM Call - Comprehensive Capability Verification Report
 
 **Date:** 2025-05-31 15:41:25  
 **Requested by:** User  
@@ -93,7 +93,7 @@ All three requested capabilities have been verified and confirmed to be working 
 
 3. **Dependency Requirement**
    ```bash
-   pip install git+file:///home/graham/workspace/experiments/rl_commons
+   uv add git+file:///home/graham/workspace/experiments/rl_commons
    ```
    - The system correctly imports from `graham_rl_commons`
    - Uses ContextualBandit, RLState, RLAction, RLReward, RLTracker

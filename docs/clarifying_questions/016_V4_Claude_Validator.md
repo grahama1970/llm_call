@@ -6,7 +6,7 @@
    src/llm_call/core/api/?
    > shouldn't be a standalong runing file as would be normal with FastAPI servers, remeber this will eventuall be running a fast api server in one terminal and the python cli commands in another terminal. And,eventually, this will happen in a docker container so claude is in an isolated safe environnment
   - What port should it run on? (The docs mention
-  localhost:3010 for Claude Max proxy)
+  localhost:3010 for LLM Call proxy)
   3010 is fin
   - Should the "max/" prefix routing be handled in the
   proxy server or in the router?

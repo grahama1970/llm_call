@@ -1,5 +1,7 @@
 """
 Logging setup module for llm_call package.
+Module: logging_setup.py
+Description: Functions for logging setup operations
 
 This module provides centralized logging configuration using loguru.
 It configures console and optional file logging with customizable levels.
@@ -113,12 +115,12 @@ if __name__ == "__main__":
     
     # Verify file was created
     if os.path.exists("test_log.log"):
-        logger.success("✅ File logging verified")
+        logger.success(" File logging verified")
         # Clean up
         os.remove("test_log.log")
     else:
-        logger.error("❌ File logging failed")
+        logger.error(" File logging failed")
         sys.exit(1)
     
-    logger.success("✅ All logging tests passed")
+    logger.success(" All logging tests passed")
     sys.exit(0)

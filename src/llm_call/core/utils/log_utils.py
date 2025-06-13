@@ -1,3 +1,20 @@
+"""
+Module: log_utils.py
+Description: Utility functions and helpers for log utils
+
+External Dependencies:
+- None (uses only standard library)
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 import logging
 import re
 from typing import List, Any, Dict, Optional
@@ -210,7 +227,7 @@ if __name__ == "__main__":
         # for item in safe_results:
         #     print(item) # Optional: print results if needed
     except TypeError as e:
-        print(f"❌ ERROR processing valid data: {e}")
+        print(f" ERROR processing valid data: {e}")
 
     print("\n--- Testing Invalid Inputs ---")
 
@@ -220,9 +237,9 @@ if __name__ == "__main__":
     try:
         log_safe_results(invalid_input_1)
     except TypeError as e:
-        print(f"✅ Successfully caught expected error: {e}")
+        print(f" Successfully caught expected error: {e}")
     except Exception as e:
-        print(f"❌ Caught unexpected error: {e}")
+        print(f" Caught unexpected error: {e}")
 
     # Test Case 2: Input is a list, but contains non-dict elements
     invalid_input_2 = [{"a": 1}, "string_element", {"c": 3}]  # List with a string
@@ -230,9 +247,9 @@ if __name__ == "__main__":
     try:
         log_safe_results(invalid_input_2)
     except TypeError as e:
-        print(f"✅ Successfully caught expected error: {e}")
+        print(f" Successfully caught expected error: {e}")
     except Exception as e:
-        print(f"❌ Caught unexpected error: {e}")
+        print(f" Caught unexpected error: {e}")
 
     # Test Case 3: Input is a list of simple types
     invalid_input_3 = [1, 2, 3, 4]  # List of integers
@@ -240,9 +257,9 @@ if __name__ == "__main__":
     try:
         log_safe_results(invalid_input_3)
     except TypeError as e:
-        print(f"✅ Successfully caught expected error: {e}")
+        print(f" Successfully caught expected error: {e}")
     except Exception as e:
-        print(f"❌ Caught unexpected error: {e}")
+        print(f" Caught unexpected error: {e}")
 
     # Test Case 4: Input is None
     invalid_input_4 = None
@@ -250,9 +267,9 @@ if __name__ == "__main__":
     try:
         log_safe_results(invalid_input_4)
     except TypeError as e:
-        print(f"✅ Successfully caught expected error: {e}")
+        print(f" Successfully caught expected error: {e}")
     except Exception as e:
-        print(f"❌ Caught unexpected error: {e}")
+        print(f" Caught unexpected error: {e}")
 
     # Test Case 5: Empty list (should be valid)
     valid_input_empty = []
@@ -260,11 +277,11 @@ if __name__ == "__main__":
     try:
         result = log_safe_results(valid_input_empty)
         if result == []:
-            print(f"✅ Successfully processed empty list.")
+            print(f" Successfully processed empty list.")
         else:
-            print(f"❌ Processing empty list resulted in unexpected output: {result}")
+            print(f" Processing empty list resulted in unexpected output: {result}")
     except Exception as e:
-        print(f"❌ Caught unexpected error processing empty list: {e}")
+        print(f" Caught unexpected error processing empty list: {e}")
 
     # Test API logging functions
     print("\n--- Testing API Logging Functions ---")
@@ -272,6 +289,6 @@ if __name__ == "__main__":
         log_api_request("TestService", {"model": "test-model", "prompt": "This is a test prompt"})
         log_api_response("TestService", {"result": "This is a test result", "status": "success"})
         log_api_error("TestService", Exception("Test error"), {"model": "test-model"})
-        print("✅ API logging functions executed successfully.")
+        print(" API logging functions executed successfully.")
     except Exception as e:
-        print(f"❌ Error testing API logging functions: {e}")
+        print(f" Error testing API logging functions: {e}")

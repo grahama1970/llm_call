@@ -16,7 +16,7 @@ The router module already has full support for max/* model routing. Created comp
 
 ### Test Execution
 ```bash
-cd /home/graham/workspace/experiments/claude_max_proxy && python tests/llm_call/core/test_router.py
+cd /home/graham/workspace/experiments/llm_call && python tests/llm_call/core/test_router.py
 ```
 
 ### Output

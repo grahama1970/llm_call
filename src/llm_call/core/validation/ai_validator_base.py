@@ -1,11 +1,12 @@
 """
 AI-Assisted Validator Base Class
+Module: ai_validator_base.py
 
 This module provides a base class for validators that can make recursive LLM calls
 to validate responses. Based on research findings:
 - Instructor library patterns for structured validation
-- DeepEval's LLM-based evaluation metrics
-- Pydantic's async validation patterns
+- DeepEval's LLM-based evaluation metrics'
+- Pydantic's async validation patterns'
 - Dependency injection for flexible LLM caller configuration
 
 Documentation:
@@ -210,7 +211,7 @@ Text to validate:
 {response}
 
 Respond with a JSON object containing:
-- "valid": boolean indicating if it's valid JSON
+- "valid": boolean indicating if it's valid JSON'
 - "confidence": float between 0 and 1
 - "reasoning": explanation of your validation
 - "suggestions": array of improvement suggestions
@@ -315,7 +316,7 @@ if __name__ == "__main__":
         try:
             await validator3.validate("{}", {})
         except RuntimeError as e:
-            print(f"✅ Correctly caught error: {e}")
+            print(f" Correctly caught error: {e}")
         print()
         
         # Test 4: Test with sync function wrapper
@@ -361,7 +362,7 @@ Respond with JSON containing valid, confidence, reasoning, and suggestions."""
                 try:
                     parsed = json.loads(content)
                     return ValidationResult(**parsed)
-                except:
+                except (json.JSONDecodeError, KeyError, TypeError):  # Parse error in validation response
                     return ValidationResult(valid=True, confidence=0.5, reasoning="Parse error")
                     
         code_validator = CodeValidator(AIValidatorConfig(validation_model="gpt-4"))
@@ -372,7 +373,7 @@ Respond with JSON containing valid, confidence, reasoning, and suggestions."""
         print(f"Code validation: {result5.valid} (confidence: {result5.confidence})")
         print(f"Validator config: {code_validator.config.validation_model}")
         
-        print("\n✅ All tests completed successfully!")
+        print("\n All tests completed successfully!")
         
     # Run tests
     asyncio.run(test_validators())

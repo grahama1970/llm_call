@@ -1,3 +1,24 @@
+"""
+Module: embedding_utils.py
+Description: Utility functions and helpers for embedding utils
+
+External Dependencies:
+- numpy: https://numpy.org/doc/
+- loguru: [Documentation URL]
+- dotenv: [Documentation URL]
+- torch: [Documentation URL]
+- transformers: [Documentation URL]
+
+Sample Input:
+>>> # Add specific examples based on module functionality
+
+Expected Output:
+>>> # Add expected output examples
+
+Example Usage:
+>>> # Add usage examples
+"""
+
 # marker/utils/embedding_utils.py
 import os
 import hashlib
@@ -189,7 +210,7 @@ def validate_embedding_utils():
         def check(self, test_name, expected, actual, description=None):
             self.total_tests += 1
             if expected == actual:
-                print(f"✅ PASS: {test_name}")
+                print(f" PASS: {test_name}")
                 return True
             else:
                 self.failures.append({
@@ -198,7 +219,7 @@ def validate_embedding_utils():
                     "actual": actual,
                     "description": description
                 })
-                print(f"❌ FAIL: {test_name}")
+                print(f" FAIL: {test_name}")
                 print(f"  Expected: {expected}")
                 print(f"  Actual: {actual}")
                 if description:
@@ -208,12 +229,12 @@ def validate_embedding_utils():
         def report_and_exit(self):
             failed_count = len(self.failures)
             if failed_count > 0:
-                print(f"\n❌ VALIDATION FAILED - {failed_count} of {self.total_tests} tests failed:")
+                print(f"\n VALIDATION FAILED - {failed_count} of {self.total_tests} tests failed:")
                 for failure in self.failures:
                     print(f"  - {failure['test_name']}")
                 sys.exit(1)
             else:
-                print(f"\n✅ VALIDATION PASSED - All {self.total_tests} tests produced expected results")
+                print(f"\n VALIDATION PASSED - All {self.total_tests} tests produced expected results")
                 sys.exit(0)
     
     validator = SimpleValidator("Embedding Utils Module")

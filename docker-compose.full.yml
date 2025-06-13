@@ -1,0 +1,164 @@
+# Full Docker Architecture for llm_call
+# This demonstrates the complete containerized setup
+version: '3.8'
+
+services:
+  # Main API service
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    container_name: llm-call-api
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      - REDIS_URL=redis://redis:6379
+      - CLAUDE_PROXY_URL=http://claude-proxy:3010
+      - ENABLE_RL_ROUTING=true
+      - ENABLE_LLM_VALIDATION=true
+      # API Keys from host environment
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      - BRAVE_API_KEY=${BRAVE_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    volumes:
+      # Read-only source for production
+      - ./src:/app/src:ro
+      - ./config:/app/config:ro
+      # Writable directories
+      - api-logs:/app/logs
+      - api-cache:/app/cache
+      # For development - uncomment to enable hot reload
+      # - ./src:/app/src
+    depends_on:
+      - redis
+      - claude-proxy
+    networks:
+      - llm-call-network
+      - granger-network  # External network for GRANGER hub
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Claude CLI proxy with code execution
+  claude-proxy:
+    build:
+      context: .
+      dockerfile: docker/claude-proxy/Dockerfile
+    container_name: llm-call-claude-proxy
+    expose:
+      - "3010"  # Only exposed internally
+    volumes:
+      - ~/.claude:/root/.claude
+      - claude-workspace:/app/claude_poc_workspace
+      # Security: Limited file access
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 1G
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      - POC_SERVER_HOST=0.0.0.0
+    networks:
+      - llm-call-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    # Security constraints
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+
+  # Redis for caching and state management
+  redis:
+    image: redis:7-alpine
+    container_name: llm-call-redis
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - llm-call-network
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # Optional: Ollama for local LLM inference
+  ollama:
+    image: ollama/ollama:latest
+    container_name: llm-call-ollama
+    profiles:
+      - gpu  # Only start with --profile gpu
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - llm-call-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # Development database viewer
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: llm-call-redis-commander
+    profiles:
+      - dev  # Only start with --profile dev
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    networks:
+      - llm-call-network
+    depends_on:
+      - redis
+
+networks:
+  llm-call-network:
+    driver: bridge
+    name: llm-call-network
+  
+  # External network for GRANGER ecosystem integration
+  granger-network:
+    external: true
+    name: granger-network
+
+volumes:
+  api-logs:
+    driver: local
+  api-cache:
+    driver: local
+  redis-data:
+    driver: local
+  claude-workspace:
+    driver: local
+  ollama-models:
+    driver: local

@@ -1,5 +1,7 @@
 """
 LLM CLI Package
+Module: __init__.py
+Description: Package initialization and exports
 
 This package provides a unified command-line interface for the LLM call system:
 

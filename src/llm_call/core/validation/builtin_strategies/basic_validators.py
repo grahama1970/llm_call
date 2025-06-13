@@ -1,5 +1,6 @@
 """
 Basic validation strategies for LLM responses.
+Module: basic_validators.py
 
 This module provides simple validators for common validation needs.
 
@@ -215,7 +216,7 @@ if __name__ == "__main__":
             
             result = await validator.validate(test_response, {})
             assert result.valid == True
-            logger.success("✅ ResponseNotEmptyValidator accepts valid content")
+            logger.success(" ResponseNotEmptyValidator accepts valid content")
         except Exception as e:
             all_validation_failures.append(f"Empty validator test failed: {e}")
         
@@ -233,7 +234,7 @@ if __name__ == "__main__":
             result = await validator.validate(test_response, {})
             assert result.valid == False
             assert "empty" in result.error.lower()
-            logger.success("✅ ResponseNotEmptyValidator rejects empty content")
+            logger.success(" ResponseNotEmptyValidator rejects empty content")
         except Exception as e:
             all_validation_failures.append(f"Empty validator rejection test failed: {e}")
         
@@ -251,7 +252,7 @@ if __name__ == "__main__":
             result = await validator.validate(test_response, {})
             assert result.valid == True
             assert result.debug_info["json_keys"] == ["key", "number"]
-            logger.success("✅ JsonStringValidator accepts valid JSON")
+            logger.success(" JsonStringValidator accepts valid JSON")
         except Exception as e:
             all_validation_failures.append(f"JSON validator test failed: {e}")
         
@@ -270,7 +271,7 @@ if __name__ == "__main__":
             assert result.valid == False
             assert "Invalid JSON" in result.error
             assert len(result.suggestions) > 0
-            logger.success("✅ JsonStringValidator rejects invalid JSON")
+            logger.success(" JsonStringValidator rejects invalid JSON")
         except Exception as e:
             all_validation_failures.append(f"JSON validator rejection test failed: {e}")
         
@@ -280,10 +281,10 @@ if __name__ == "__main__":
     failures, tests = asyncio.run(test_validators())
     
     if failures:
-        logger.error(f"❌ VALIDATION FAILED - {len(failures)} of {tests} tests failed:")
+        logger.error(f" VALIDATION FAILED - {len(failures)} of {tests} tests failed:")
         for failure in failures:
             logger.error(f"  - {failure}")
         sys.exit(1)
     else:
-        logger.success(f"✅ VALIDATION PASSED - All {tests} tests produced expected results")
+        logger.success(f" VALIDATION PASSED - All {tests} tests produced expected results")
         sys.exit(0)

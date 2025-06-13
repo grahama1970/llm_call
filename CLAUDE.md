@@ -1,4 +1,4 @@
-# CLAUDE MAX PROXY CONTEXT — CLAUDE.md
+# LLM CALL CONTEXT — CLAUDE.md
 
 > **Inherits standards from global and workspace CLAUDE.md files with overrides below.**
 
@@ -12,7 +12,7 @@
 
 ### Special Dependencies
 ```toml
-# Claude Max Proxy requires multiple LLM provider libraries
+# LLM Call requires multiple LLM provider libraries
 anthropic = "^0.25.0"
 openai = "^1.3.0"
 google-generativeai = "^0.3.0"
@@ -22,7 +22,7 @@ redis = "^5.0.0"
 
 ### Environment Variables
 ```bash
-# .env additions for Claude Max Proxy
+# .env additions for LLM Call
 PROXY_PORT=8001
 CLAUDE_API_KEY=your_claude_api_key
 OPENAI_API_KEY=your_openai_api_key
