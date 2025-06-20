@@ -14,6 +14,9 @@ temp
 conversion_results
 uploads
 /cache
+node_modules
+dist
+coverage.xml
 
 # Sensitive credentials and service accounts
 vertex_ai_service_account.json
