@@ -93,34 +93,44 @@ def _prepare_messages_and_params(llm_config: Dict[str, Any]) -> Dict[str, Any]:
     model_name = processed_config.get("model", "").lower()
     is_multimodal_request = is_multimodal(messages)
     
+    # Check if we're using local Claude CLI (which needs local file paths, not base64)
+    is_local_claude_cli = (model_name.startswith("max/") and 
+                          settings.claude_proxy.execution_mode == "local")
+    
     # Process multimodal for all models (including max/)
     if is_multimodal_request:
         logger.info(f"Multimodal content detected for '{model_name}'. Formatting messages...")
         
-        image_directory = processed_config.get("image_directory", "")
-        max_size_kb = processed_config.get("max_image_size_kb", settings.llm.max_image_size_kb)
-        
-        # Check if we need image directory (from POC)
-        needs_image_dir = False
-        for msg in messages:
-            content = msg.get("content")
-            if isinstance(content, list):
-                for item in content:
-                    if isinstance(item, dict) and item.get("type") == "image_url":
-                        url = item.get("image_url", {}).get("url", "")
-                        if not (url.startswith("data:") or url.startswith("http:") or 
-                               url.startswith("https://") or url.startswith("/")):
-                            needs_image_dir = True
-                            break
-                if needs_image_dir:
-                    break
-        
-        if needs_image_dir and not image_directory:
-            logger.warning("Multimodal content with relative paths detected, but 'image_directory' not specified.")
-        
-        # Format multimodal messages
-        processed_messages = format_multimodal_messages(messages, image_directory, max_size_kb)
-        processed_config["messages"] = processed_messages
+        # Skip base64 conversion for local Claude CLI
+        if is_local_claude_cli:
+            logger.info("Using local Claude CLI - preserving local file paths")
+            # Don't process images, just pass messages through
+            processed_config["messages"] = messages
+        else:
+            image_directory = processed_config.get("image_directory", "")
+            max_size_kb = processed_config.get("max_image_size_kb", settings.llm.max_image_size_kb)
+            
+            # Check if we need image directory (from POC)
+            needs_image_dir = False
+            for msg in messages:
+                content = msg.get("content")
+                if isinstance(content, list):
+                    for item in content:
+                        if isinstance(item, dict) and item.get("type") == "image_url":
+                            url = item.get("image_url", {}).get("url", "")
+                            if not (url.startswith("data:") or url.startswith("http:") or 
+                                   url.startswith("https://") or url.startswith("/")):
+                                needs_image_dir = True
+                                break
+                    if needs_image_dir:
+                        break
+            
+            if needs_image_dir and not image_directory:
+                logger.warning("Multimodal content with relative paths detected, but 'image_directory' not specified.")
+            
+            # Format multimodal messages
+            processed_messages = format_multimodal_messages(messages, image_directory, max_size_kb)
+            processed_config["messages"] = processed_messages
     
     return processed_config
 
@@ -142,7 +152,7 @@ async def make_llm_request(llm_config: Dict[str, Any]) -> Union[Dict[str, Any], 
     try:
         if not llm_config:
             logger.error("'llm_config' cannot be empty.")
-            return None
+            raise ValueError("'llm_config' cannot be empty.")
         
         # Step 1: Preprocessing
         processed_config = _prepare_messages_and_params(llm_config)
@@ -214,8 +224,11 @@ async def make_llm_request(llm_config: Dict[str, Any]) -> Union[Dict[str, Any], 
         # Remove validation, messages and response_format from api_params as they're handled separately
         api_params_cleaned = {
             k: v for k, v in api_params.items() 
-            if k not in ["messages", "response_format", "validation", "retry_config"]
+            if k not in ["messages", "timeout", "response_format", "validation", "retry_config"]
         }
+        # Add timeout if specified
+        if "timeout" in processed_config:
+            api_params_cleaned["timeout"] = processed_config["timeout"]
         
         response = await retry_with_validation(
             llm_call=provider.complete,
@@ -230,10 +243,10 @@ async def make_llm_request(llm_config: Dict[str, Any]) -> Union[Dict[str, Any], 
         
     except ValueError as ve:
         logger.error(f"Configuration error: {ve}")
-        return None
+        raise
     except Exception as e:
         logger.error(f"Unexpected error in make_llm_request: {type(e).__name__} - {e}")
-        return None
+        raise
 
 
 # Test function

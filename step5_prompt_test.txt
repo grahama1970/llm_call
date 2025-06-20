@@ -1,0 +1,18 @@
+Improving task list design for AI systems with cognitive limitations involves several best practices:
+
+1. **Clearly Define Tasks**:
+   - **Be Specific and Clear**: Clearly define what you need and what you want the AI to do. Include relevant details like tone, format, and purpose. For example, instead of asking "Create a to-do list," specify "Create a personalized to-do list for my workweek, including meetings, project deadlines, personal errands, leisure activities, social commitments, and downtime."[3]
+
+2. **Provide Context**:
+   - **Include Relevant Details**: Provide context about the tasks, such as the urgency, estimated time required, and any specific requirements. This helps the AI understand the complexity and importance of each task. For instance, "Prioritize my tasks based on deadlines and estimated time required," or "Categorize the tasks in my to-do list based on urgency and type."[4]
+
+3. **Use Structured Prompts**:
+   - **Tailor Prompts to Specific Tasks**: Craft prompts that are tailored to the specific tasks you want the AI to perform. This ensures that the AI understands the task accurately and can generate relevant suggestions. For example, "Schedule a reminder for my meeting with the marketing team on Friday at 10 AM."[4]
+
+4. **Feedback Loop**:
+   - **Regularly Refine Prompts**: Use a feedback loop to refine your prompts based on the AI's performance. This involves monitoring the AI's suggestions and adjusting the prompts to better align with your needs. This dynamic approach helps in optimizing the AI's suggestions over time.[1]
+
+5. **Design for Seamlessness**:
+   - **Provide Seamless Experience**: Ensure that the AI system integrates seamlessly with your workflow. This includes using AI to schedule reminders, categorize tasks, and prioritize them based on urgency and type. A seamless experience reduces cognitive load and makes it easier for the AI to assist effectively.[2]
+
+By following these best

@@ -1,1 +1,0 @@
-"""Performance tests - benchmarks and load tests."""

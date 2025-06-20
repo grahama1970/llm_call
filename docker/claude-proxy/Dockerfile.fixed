@@ -1,0 +1,76 @@
+# Claude Proxy Server Docker Container
+FROM python:3.11-slim
+
+# Install system dependencies including Node.js
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    bash \
+    zsh \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Claude CLI
+RUN npm install -g @anthropic-ai/claude-code
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY docker/claude-proxy/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the source code
+COPY src/llm_call /app/llm_call
+
+# Create necessary directories
+RUN mkdir -p /app/claude_poc_workspace /root/.claude
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV CLAUDE_CLI_PATH=/usr/bin/claude
+ENV POC_TARGET_DIR=/app/claude_poc_workspace
+
+# Expose the proxy port
+EXPOSE 3010
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3010/health || exit 1
+
+# Copy entrypoint script and shell configurations
+COPY docker/claude-proxy/entrypoint.sh /app/
+COPY docker/claude-proxy/.bashrc /root/.bashrc
+COPY docker/claude-proxy/.zshrc /root/.zshrc
+RUN chmod +x /app/entrypoint.sh
+
+# Create a non-root user for Claude
+RUN useradd -m -s /bin/zsh -u 1000 claude && \
+    mkdir -p /home/claude/.claude && \
+    chown -R claude:claude /home/claude /app
+
+# Create writable directories for Claude CLI
+# These will be overlaid by tmpfs mounts but need to exist
+RUN mkdir -p /home/claude/.claude/projects \
+    /home/claude/.claude/cache \
+    /home/claude/.claude/logs \
+    /home/claude/.claude/tmp \
+    /home/claude/.claude_workspace && \
+    chown -R claude:claude /home/claude/.claude /home/claude/.claude_workspace
+
+# Copy shell configs for the claude user
+COPY docker/claude-proxy/.bashrc /home/claude/.bashrc
+COPY docker/claude-proxy/.zshrc /home/claude/.zshrc
+RUN chown claude:claude /home/claude/.bashrc /home/claude/.zshrc
+
+# Set zsh as the default shell
+SHELL ["/bin/zsh", "-c"]
+
+# Switch to non-root user
+USER claude
+WORKDIR /home/claude
+
+# Set entrypoint as root to fix permissions, then drop to claude user
+USER root
+ENTRYPOINT ["/app/entrypoint.sh"]

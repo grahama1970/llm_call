@@ -1,0 +1,25 @@
+model: vertex_ai/gemini-2.0-flash-exp
+messages:
+  - role: system
+    content: |
+      You are an expert code reviewer and analyst. 
+      Analyze the provided codebase for:
+      - Architecture patterns
+      - Potential issues or contradictions
+      - Code quality concerns
+      - Security vulnerabilities
+      - Performance bottlenecks
+  - role: user
+    content: |
+      Please analyze this codebase thoroughly and provide:
+      1. Overview of the architecture
+      2. Key findings and issues
+      3. Recommendations for improvements
+      
+      Focus on finding any contradictions or inconsistencies in the implementation.
+temperature: 0.2
+max_tokens: 4000
+validation_strategies:
+  - type: response_not_empty
+  - type: length
+    min_length: 500

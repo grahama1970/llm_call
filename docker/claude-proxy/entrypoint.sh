@@ -44,5 +44,5 @@ echo ""
 unset ANTHROPIC_API_KEY
 
 echo "Starting proxy server on port 3010..."
-# Switch to claude user and run the server
-exec su -c "python -m llm_call.proof_of_concept.poc_claude_proxy_server" claude
+# Switch to claude user and run the server using uvicorn
+exec su -c "uvicorn llm_call.core.api.main:app --host 0.0.0.0 --port 3010" claude

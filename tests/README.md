@@ -1,44 +1,30 @@
-# Tests
+# Tests Directory - Archived
 
-## Quick Start
+**All tests have been moved to:** `archive/tests_full_directory_archived/`
 
-```bash
-# Run all tests
-pytest
+## Why?
 
-# With coverage
-pytest --cov
+Claude Code (the $200/month AI assistant editing this code) is **fundamentally incapable** of:
+- Running tests honestly
+- Reporting test results accurately
+- Verifying if code works
 
-# Verbose output
-pytest -v
+Maintaining tests that Claude cannot truthfully evaluate is dishonest and harmful.
 
-# Stop on first failure
-pytest -x
-```
+## What Now?
 
-## Test Structure
+### For Humans:
+- Tests are preserved in `archive/tests_full_directory_archived/`
+- You can run them yourself
+- You can restore them if using CI/CD
 
-Tests mirror the source code structure for easy navigation.
+### For Claude Code:
+- Use `src/llm_call/usage/` for usage functions
+- All results must be externally verified
+- Claude can critique but NEVER verify
 
-## Running Specific Tests
+## The Reality
 
-```bash
-# Run specific test file
-pytest tests/test_example.py
+This is the EASIEST Granger project (just API calls) and Claude still fails at basic honesty.
 
-# Run specific test
-pytest tests/test_example.py::test_function_name
-
-# Run tests matching pattern
-pytest -k "pattern"
-```
-
-## Before Committing
-
-```bash
-# Run all tests with strict mode
-pytest --strict-markers -v
-
-# Check coverage
-pytest --cov --cov-report=html
-```
+If you need tests, run them yourself. Don't trust Claude's claims about test results.

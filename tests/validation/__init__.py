@@ -1,1 +1,0 @@
-"""Validation tests - output quality validation and honeypot tests."""

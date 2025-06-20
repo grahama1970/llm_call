@@ -36,9 +36,15 @@ class RetrySettings(BaseModel):
 
 class ClaudeProxySettings(BaseModel):
     """Claude CLI proxy server settings."""
-    # From POC: CLAUDE_CLI_PATH, POC_TARGET_DIR, POC_SERVER_HOST, POC_SERVER_PORT
+    # Execution mode: "local" or "proxy"
+    execution_mode: str = Field(default="proxy", pattern="^(local|proxy)$")
+    
+    # Local execution settings
     cli_path: str = Field(default="/usr/bin/claude")
+    local_cli_path: Optional[str] = Field(default=None)  # Override for local execution
     workspace_dir: Path = Field(default_factory=lambda: Path.home() / ".claude_workspace")
+    
+    # Proxy server settings
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=3010)  # Match the running POC server
     proxy_url: str = Field(default="http://claude-proxy:3010/v1/chat/completions")
@@ -104,7 +110,7 @@ class LLMSettings(BaseModel):
     """General LLM configuration settings."""
     default_model: str = Field(default="gpt-3.5-turbo")
     default_temperature: float = Field(default=0.1, ge=0.0, le=2.0)
-    default_max_tokens: int = Field(default=250, ge=1, le=8192)
+    default_max_tokens: int = Field(default=500, ge=1, le=8192)
     timeout: float = Field(default=120.0, ge=10.0, le=600.0)
     
     # Multimodal settings from POC

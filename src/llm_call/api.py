@@ -17,10 +17,25 @@ except ImportError:
 import asyncio
 from typing import Optional, List, Union, Dict, Any
 from pathlib import Path
+from loguru import logger
 
 from llm_call.core.caller import make_llm_request
 from llm_call.core.config.loader import load_configuration
 from llm_call.core.strategies import registry
+from llm_call.core.utils.initialize_litellm_cache import initialize_litellm_cache
+
+# Initialize cache on module import if enabled
+_cache_initialized = False
+_settings = load_configuration()
+
+if _settings.retry.enable_cache and not _cache_initialized:
+    try:
+        initialize_litellm_cache()
+        _cache_initialized = True
+    except Exception as e:
+        # Log but don't fail if cache can't be initialized
+        import warnings
+        warnings.warn(f"Could not initialize cache: {e}")
 
 
 async def ask(
@@ -33,6 +48,7 @@ async def ask(
     response_format: Optional[Dict[str, str]] = None,
     retry_max: Optional[int] = None,
     stream: bool = False,
+    timeout: Optional[float] = None,
     **kwargs
 ) -> Union[str, Dict[str, Any]]:
     """
@@ -93,6 +109,9 @@ async def ask(
         config["validation"] = [{"type": v} for v in validate]
     
     # Configure retry
+    if timeout is not None:
+        config["timeout"] = timeout
+    
     if retry_max is not None:
         config["retry_config"] = {"max_attempts": retry_max}
     
@@ -100,8 +119,15 @@ async def ask(
     response = await make_llm_request(config)
     
     # Extract content from response
-    if isinstance(response, dict) and "content" in response:
-        return response["content"]
+    if isinstance(response, dict):
+        # Handle OpenAI-style response
+        if "choices" in response and response["choices"]:
+            return response["choices"][0]["message"]["content"]
+        # Handle simple content response
+        elif "content" in response:
+            return response["content"]
+        else:
+            return response
     elif hasattr(response, 'choices') and response.choices:
         return response.choices[0].message.content
     else:
@@ -276,15 +302,66 @@ class ChatSession:
         return self.history.copy()
 
 
+class ChatSessionSync:
+    """
+    Synchronous wrapper for ChatSession.
+    
+    Provides the same interface as ChatSession but with synchronous methods.
+    """
+    
+    def __init__(self, chat_session: Optional[ChatSession] = None, **kwargs):
+        if chat_session:
+            self._session = chat_session
+        else:
+            # Create a new ChatSession with provided kwargs
+            self._session = ChatSession(**kwargs)
+    
+    def send(self, message: str) -> str:
+        """
+        Send a message and get a response synchronously.
+        
+        Args:
+            message: The message to send
+            
+        Returns:
+            The assistant's response
+        """
+        return asyncio.run(self._session.send(message))
+    
+    def clear_history(self):
+        """Clear the conversation history, keeping only system prompt if present."""
+        self._session.clear_history()
+    
+    def get_history(self) -> List[Dict[str, str]]:
+        """Get the current conversation history."""
+        return self._session.get_history()
+    
+    @property
+    def model(self):
+        """Get the model being used."""
+        return self._session.model
+    
+    @property
+    def temperature(self):
+        """Get the temperature setting."""
+        return self._session.temperature
+    
+    @property
+    def history(self):
+        """Get the conversation history."""
+        return self._session.history
+
+
 # Synchronous wrappers for convenience
 def ask_sync(*args, **kwargs) -> Union[str, Dict[str, Any]]:
     """Synchronous version of ask()."""
     return asyncio.run(ask(*args, **kwargs))
 
 
-def chat_sync(*args, **kwargs) -> ChatSession:
+def chat_sync(*args, **kwargs) -> ChatSessionSync:
     """Synchronous version of chat()."""
-    return asyncio.run(chat(*args, **kwargs))
+    session = asyncio.run(chat(*args, **kwargs))
+    return ChatSessionSync(session)
 
 
 def call_sync(*args, **kwargs) -> Union[str, Dict[str, Any]]:
@@ -293,17 +370,213 @@ def call_sync(*args, **kwargs) -> Union[str, Dict[str, Any]]:
 
 
 # Custom validator registration helper
-def register_validator(name: str):
+def register_validator(name: str, validator_func=None):
     """
-    Decorator to register a custom validation strategy.
+    Register a custom validation function or decorator.
     
-    This is an alias for the @validator decorator to match README examples.
+    Can be used as a decorator or direct function:
     
-    Example:
+    As decorator:
         >>> @register_validator("sql_safe")
         >>> def validate_sql_safety(response: str, context: dict) -> bool:
         ...     dangerous_keywords = ["DROP", "DELETE", "TRUNCATE"]
         ...     return not any(keyword in response.upper() for keyword in dangerous_keywords)
+    
+    Direct registration:
+        >>> def my_validator(response: str, context: dict) -> bool:
+        ...     return True
+        >>> register_validator("my_validator", my_validator)
     """
-    from llm_call.core.strategies import validator
-    return validator(name)
+    from llm_call.core.strategies import validator as strategy_validator
+    from llm_call.core.base import BaseValidator
+    
+    from llm_call.core.base import ValidationResult
+    
+    if validator_func is None:
+        # Used as decorator
+        def decorator(func):
+            # Create a validator class that wraps the function
+            class FunctionValidator(BaseValidator):
+                @property
+                def name(self) -> str:
+                    return name
+                
+                def validate(self, response: str, context: Optional[dict] = None) -> ValidationResult:
+                    try:
+                        result = func(response, context or {})
+                        return ValidationResult(
+                            valid=bool(result),
+                            error=None if result else f"Validation '{name}' failed"
+                        )
+                    except Exception as e:
+                        return ValidationResult(
+                            valid=False,
+                            error=f"Validation '{name}' error: {str(e)}"
+                        )
+            
+            # Set the validator name
+            FunctionValidator._validator_name = name
+            # Register it
+            return strategy_validator(name)(FunctionValidator)
+        return decorator
+    else:
+        # Direct registration
+        class FunctionValidator(BaseValidator):
+            @property
+            def name(self) -> str:
+                return name
+            
+            def validate(self, response: str, context: Optional[dict] = None) -> ValidationResult:
+                try:
+                    result = validator_func(response, context or {})
+                    return ValidationResult(
+                        valid=bool(result),
+                        error=None if result else f"Validation '{name}' failed"
+                    )
+                except Exception as e:
+                    return ValidationResult(
+                        valid=False,
+                        error=f"Validation '{name}' error: {str(e)}"
+                    )
+        
+        FunctionValidator._validator_name = name
+        return strategy_validator(name)(FunctionValidator)
+
+
+# Validation helper function
+async def validate_llm_response(
+    response: str,
+    validators: Union[str, List[str]],
+    context: Optional[Dict[str, Any]] = None
+) -> bool:
+    """
+    Validate an LLM response using one or more validators.
+    
+    Args:
+        response: The LLM response to validate
+        validators: Single validator name or list of validator names
+        context: Optional context for validation
+        
+    Returns:
+        True if all validators pass, False otherwise
+        
+    Example:
+        >>> is_valid = await validate_llm_response(
+        ...     "SELECT * FROM users",
+        ...     ["sql", "no_injection"],
+        ...     {"database": "mysql"}
+        ... )
+    """
+    from llm_call.core.strategies import get_validator
+    from llm_call.core.retry import validate_response as validate_with_strategy
+    
+    if isinstance(validators, str):
+        validators = [validators]
+    
+    if context is None:
+        context = {}
+    
+    try:
+        # Validate with each validator
+        for validator_name in validators:
+            try:
+                # Get validator instance
+                validator = get_validator(validator_name)
+                
+                # Create a simple strategy wrapper
+                class SimpleStrategy:
+                    def __init__(self, validator):
+                        self.validator = validator
+                        self.name = validator_name
+                    
+                    async def validate(self, response, context):
+                        # Check if validator has async validate method
+                        if hasattr(self.validator, 'validate'):
+                            result = self.validator.validate(response, context)
+                            # If it's a coroutine, await it
+                            if asyncio.iscoroutine(result):
+                                return await result
+                            return result
+                        return None
+                
+                strategy = SimpleStrategy(validator)
+                
+                # Validate
+                result = await validate_with_strategy(strategy, response, context)
+                if not result.valid:
+                    return False
+                    
+            except ValueError as e:
+                # Validator not found
+                logger.warning(f"Validator '{validator_name}' not found: {e}")
+                return False
+            except Exception as e:
+                logger.error(f"Validation error with '{validator_name}': {e}")
+                return False
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Unexpected error during validation: {e}")
+        return False
+
+
+def validate_llm_response_sync(
+    response: str,
+    validators: Union[str, List[str]],
+    context: Optional[Dict[str, Any]] = None
+) -> bool:
+    """Synchronous version of validate_llm_response."""
+    return asyncio.run(validate_llm_response(response, validators, context))
+
+
+# Provider helper function  
+def get_available_providers() -> List[str]:
+    """
+    Get a list of available LLM providers.
+    
+    Returns:
+        List of provider names that can be used with model specifications
+        
+    Example:
+        >>> providers = get_available_providers()
+        >>> print(providers)
+        ['openai', 'anthropic', 'google', 'max', 'groq', 'together']
+    """
+    # Common providers supported by litellm
+    providers = [
+        'openai',
+        'anthropic', 
+        'google',
+        'max',
+        'groq',
+        'together',
+        'cohere',
+        'replicate',
+        'huggingface',
+        'azure',
+        'bedrock',
+        'vertex_ai',
+        'palm',
+        'ai21',
+        'baseten',
+        'openrouter',
+        'aleph_alpha',
+        'nlp_cloud',
+        'petals',
+        'vllm',
+        'ollama',
+        'deepinfra',
+        'perplexity',
+        'anyscale',
+        'mistral',
+        'groq',
+        'deepseek',
+        'codestral',
+        'text-completion-openai',
+        'text-completion-cohere',
+        'custom'
+    ]
+    
+    # Remove duplicates and sort
+    return sorted(list(set(providers)))

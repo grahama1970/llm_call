@@ -61,7 +61,9 @@ curl -X POST http://localhost:8001/v1/chat/completions \
 
 ### Using Claude Max
 
-If you have a Claude Max subscription:
+If you have a Claude Max subscription, you can use max/opus models in two ways:
+
+#### Option 1: Docker Proxy Mode (Default)
 
 1. **First-time setup** - Authenticate Claude CLI:
 ```bash
@@ -76,9 +78,23 @@ claude  # Launch Claude Code and authenticate
 2. Use the max/opus models:
 ```python
 from llm_call import make_llm_request
+```
+
+#### Option 2: Local Mode (Direct CLI)
+
+For lower latency, you can run Claude CLI directly without the proxy:
+
+```bash
+# Set environment variables
+export CLAUDE_PROXY_EXECUTION_MODE=local
+export CLAUDE_PROXY_LOCAL_CLI_PATH=/path/to/claude  # e.g., ~/.nvm/versions/node/v22.15.0/bin/claude
+unset ANTHROPIC_API_KEY  # Required for OAuth
+
+# Use the same API
+from llm_call import make_llm_request
 
 response = await make_llm_request({
-    "model": "max/claude-3-opus-20240229",
+    "model": "max/opus",  # or "max/claude-3-opus-20240229"
     "messages": [{"role": "user", "content": "Hello!"}]
 })
 ```
@@ -220,11 +236,24 @@ config = {
 response = await make_llm_request(config)
 
 # Available routes:
-# - "max/opus" -> Claude CLI
+# - "max/opus" -> Claude CLI (supports multimodal)
 # - "vertex_ai/gemini-1.5-pro" -> Gemini with 1M context
 # - "gpt-4", "gpt-3.5-turbo" -> OpenAI
 # - "ollama/llama3.2" -> Local models
 # - "runpod/pod-id/llama-3-70b" -> Runpod hosted models (30-70B)
+
+# Multimodal example (images)
+multimodal_config = {
+    "model": "max/opus",  # or gpt-4-vision-preview, gemini-pro-vision
+    "messages": [{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "What's in this image?"},
+            {"type": "image_url", "image_url": {"url": "/path/to/image.png"}}
+        ]
+    }]
+}
+response = await make_llm_request(multimodal_config)
 ```
 
 ### 3. Validation Integration
@@ -367,6 +396,43 @@ uv add -e .
 cp .env.example .env
 # Edit .env with your API keys
 ```
+
+## 💻 Claude Desktop Slash Commands
+
+For Claude Desktop users, llm_call includes powerful slash commands with flexible configuration:
+
+```bash
+# Installation
+cp ~/.claude/commands/llm_call ~/.claude/commands/
+cp ~/.claude/commands/llm_call_multimodal ~/.claude/commands/
+cp ~/.claude/commands/llm ~/.claude/commands/  # Short alias
+
+# Basic usage
+/llm_call "What is Python?" --model gpt-4
+/llm "Describe image" --image photo.jpg --model max/opus
+
+# Advanced features
+/llm --query "Find issues" --corpus /path/to/code --model vertex_ai/gemini-2.0-flash-exp
+/llm --config analysis.json --model gpt-4
+```
+
+### Slash Command Features
+
+- **Multimodal support**: Analyze images with `--image`
+- **Corpus analysis**: Analyze entire directories with `--corpus`
+- **Config files**: Use JSON/YAML configs with `--config`
+- **Flexible models**: Any model llm_call supports
+- **Parameter control**: Temperature, max tokens, validation
+
+### Configuration Locations
+
+The slash commands look for .env files in this order:
+1. Path in `LLM_CALL_ENV_FILE` environment variable
+2. `/home/graham/workspace/experiments/llm_call/.env`
+3. `~/.llm_call/.env`
+4. Same directory as the slash command
+
+See [docs/SLASH_COMMAND_SETUP.md](docs/SLASH_COMMAND_SETUP.md) for detailed setup options.
 
 ## 📋 File Structure
 

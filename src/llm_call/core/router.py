@@ -26,7 +26,9 @@ from llm_call.core.config.loader import load_configuration
 config = load_configuration()
 from llm_call.core.providers.base_provider import BaseLLMProvider
 from llm_call.core.providers.claude_cli_proxy import ClaudeCLIProxyProvider
+from llm_call.core.providers.claude_cli_local import ClaudeCLILocalProvider
 from llm_call.core.providers.litellm_provider import LiteLLMProvider
+from llm_call.core.providers.ollama_provider import OllamaProvider
 
 
 def resolve_route(llm_config: Dict[str, Any]) -> Tuple[Type[BaseLLMProvider], Dict[str, Any]]:
@@ -50,23 +52,43 @@ def resolve_route(llm_config: Dict[str, Any]) -> Tuple[Type[BaseLLMProvider], Di
     
     logger.debug(f"[Router] Resolving route for model: {model_name_original}")
     
-    # Route to Claude CLI proxy for "max/" models (from POC)
-    if model_name_lower.startswith("max/"):
-        logger.info(f"️ Determined route: PROXY for model '{model_name_original}'")
+    # Route to Claude CLI for "max", "opus", and "max/" models
+    if model_name_lower in ["max", "opus"] or model_name_lower.startswith("max/"):
+        # Check execution mode from configuration
+        execution_mode = config.claude_proxy.execution_mode
         
-        # Prepare parameters for Claude proxy
-        api_params = {
-            "model": model_name_original,
-            "temperature": llm_config.get("temperature", config.llm.default_temperature),
-            "max_tokens": llm_config.get("max_tokens", config.llm.default_max_tokens),
-            "stream": llm_config.get("stream", False),
-        }
-        
-        # Add response format if present
-        if "response_format" in llm_config:
-            api_params["response_format"] = llm_config["response_format"]
-        
-        return ClaudeCLIProxyProvider, api_params
+        if execution_mode == "local":
+            logger.info(f"️ Determined route: LOCAL CLAUDE CLI for model '{model_name_original}'")
+            
+            # Prepare parameters for local Claude CLI
+            api_params = {
+                "model": model_name_original,
+                "temperature": llm_config.get("temperature", config.llm.default_temperature),
+                "max_tokens": llm_config.get("max_tokens", config.llm.default_max_tokens),
+                "stream": llm_config.get("stream", False),
+            }
+            
+            # Add response format if present
+            if "response_format" in llm_config:
+                api_params["response_format"] = llm_config["response_format"]
+            
+            return ClaudeCLILocalProvider, api_params
+        else:
+            logger.info(f"️ Determined route: PROXY for model '{model_name_original}'")
+            
+            # Prepare parameters for Claude proxy
+            api_params = {
+                "model": model_name_original,
+                "temperature": llm_config.get("temperature", config.llm.default_temperature),
+                "max_tokens": llm_config.get("max_tokens", config.llm.default_max_tokens),
+                "stream": llm_config.get("stream", False),
+            }
+            
+            # Add response format if present
+            if "response_format" in llm_config:
+                api_params["response_format"] = llm_config["response_format"]
+            
+            return ClaudeCLIProxyProvider, api_params
     
     # Route to LiteLLM for all other models
     else:
@@ -115,6 +137,23 @@ def resolve_route(llm_config: Dict[str, Any]) -> Tuple[Type[BaseLLMProvider], Di
                 api_params["api_key"] = "EMPTY"
             
             logger.info(f"Routing Runpod model '{actual_model}' via {api_params.get('api_base')}")
+        
+        # Handle Ollama models
+        elif model_name_lower.startswith("ollama/"):
+            logger.info(f"️ Determined route: OLLAMA for model '{model_name_original}'")
+            
+            # Set Ollama API base from environment or use default
+            api_base = os.getenv("OLLAMA_API_BASE", "http://localhost:11434")
+            
+            api_params = {
+                "model": model_name_original,
+                "api_base": api_base,
+                "temperature": llm_config.get("temperature", config.llm.default_temperature),
+                "max_tokens": llm_config.get("max_tokens", config.llm.default_max_tokens),
+            }
+            
+            logger.info(f"Routing Ollama model '{model_name_original}' via {api_base}")
+            return OllamaProvider, api_params
         
         # Handle Vertex AI specific parameters (from POC)
         elif model_name_lower.startswith("vertex_ai/"):

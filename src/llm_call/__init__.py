@@ -2,27 +2,19 @@
 
 from typing import Optional, Dict, Any, List
 
-# Import core functionality
-try:
-    from .core.caller import make_llm_request
-    from .core.base import ValidationError
-except ImportError:
-    make_llm_request = None
-    ValidationError = Exception
+# Import core functionality with absolute imports
+from llm_call.core.caller import make_llm_request
+from llm_call.core.validation.retry_manager import ValidationError
+from llm_call.core import config as get_config
+from llm_call.core.strategies import VALIDATION_STRATEGIES, registry as STRATEGIES
+from llm_call.core.router import resolve_route as route_request
 
 # Import API functions
-try:
-    from .api import ask, chat, call, ask_sync, chat_sync, call_sync, ChatSession, register_validator
-except ImportError as e:
-    # If imports fail, provide None fallbacks
-    ask = None
-    chat = None
-    call = None
-    ask_sync = None
-    chat_sync = None
-    call_sync = None
-    ChatSession = None
-    register_validator = None
+from llm_call.api import (
+    ask, chat, call, ask_sync, chat_sync, call_sync, 
+    ChatSession, ChatSessionSync, register_validator,
+    get_available_providers, validate_llm_response_sync
+)
 
 # Convenience wrapper
 async def llm_call(
@@ -48,6 +40,11 @@ async def llm_call(
 
 # Export main interfaces
 __version__ = "1.0.0"
+# Import new modules with absolute imports
+from llm_call.multimodal import process_multimodal, process_multimodal_sync
+from llm_call.conversation import ConversationManager, ConversationManagerSync
+from llm_call.slash_commands import SlashCommandRegistry
+
 __all__ = [
     "llm_call", 
     "make_llm_request", 
@@ -59,5 +56,17 @@ __all__ = [
     "chat_sync",
     "call_sync",
     "ChatSession",
-    "register_validator"
+    "ChatSessionSync",
+    "register_validator",
+    "get_available_providers",
+    "validate_llm_response_sync",
+    "get_config",
+    "VALIDATION_STRATEGIES",
+    "STRATEGIES",
+    "route_request",
+    "process_multimodal",
+    "process_multimodal_sync",
+    "ConversationManager",
+    "ConversationManagerSync",
+    "SlashCommandRegistry"
 ]

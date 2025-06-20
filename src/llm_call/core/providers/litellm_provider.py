@@ -55,6 +55,11 @@ class LiteLLMProvider(BaseLLMProvider):
             "max_tokens": kwargs.get("max_tokens", settings.llm.default_max_tokens),
         }
         
+        # Enable caching if configured
+        if settings.retry.enable_cache:
+            # LiteLLM uses 'cache' parameter with specific format
+            api_params["cache"] = {"no-cache": False}
+        
         # Add response format if specified
         if response_format:
             api_params["response_format"] = response_format

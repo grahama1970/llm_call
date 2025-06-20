@@ -34,6 +34,8 @@ def initialize_litellm_cache() -> None:
         logger.debug(f"Found REDIS_PASSWORD: {os.environ['REDIS_PASSWORD']}")
         del os.environ["REDIS_PASSWORD"]
         logger.debug("Unset REDIS_PASSWORD from environment")
+    
+    # We are on Claude Max plan - no API key needed
 
     redis_host = os.getenv("REDIS_HOST", "localhost")
     redis_port = int(os.getenv("REDIS_PORT", 6379))

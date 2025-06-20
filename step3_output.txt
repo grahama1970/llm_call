@@ -1,0 +1,4 @@
+CHECKLIST VERIFICATION
+1. Check existing commands first
+2. Use real data only
+3. Send results to external verification

@@ -263,7 +263,7 @@ class TextChunker:
             logger.debug(f"Using tiktoken with {self.model_name} encoding")
         except Exception as e:
             logger.warning(f"Error initializing tiktoken: {e}. Using fallback counting.")
-            self.encoding = None
+            raise ImportError('Failed to load encoding')
 
     def _setup_sentence_splitter(self):
         """Set up the sentence splitter."""
@@ -272,10 +272,10 @@ class TextChunker:
             logger.debug(f"Using spaCy model {self.spacy_model_name} for sentence splitting")
         except OSError:
             logger.warning(f"SpaCy model '{self.spacy_model_name}' not found. Using regex fallback.")
-            self.nlp = None
+            raise ImportError('Failed to load spacy model')
         except Exception as e:
             logger.warning(f"Error loading spaCy model: {e}. Using regex fallback.")
-            self.nlp = None
+            raise ImportError('Failed to load spacy model')
 
     def count_tokens(self, text: str) -> int:
         """
@@ -670,6 +670,41 @@ class TextChunker:
         }
         logger.info(f"Created fallback chunk with section_id={section_hash}")
         return [data]
+
+
+def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[str]:
+    """
+    Simple text chunking function for compatibility with tests.
+    
+    Args:
+        text: The text to chunk
+        chunk_size: Size of each chunk in characters
+        overlap: Number of characters to overlap between chunks
+        
+    Returns:
+        List of text chunks
+    """
+    if not text:
+        return []
+    
+    chunks = []
+    start = 0
+    text_len = len(text)
+    
+    while start < text_len:
+        end = start + chunk_size
+        chunk = text[start:end]
+        chunks.append(chunk)
+        
+        # Move start position, accounting for overlap
+        start = end - overlap
+        
+        # If we're near the end, make sure we capture everything
+        if start + chunk_size >= text_len and start < text_len:
+            chunks.append(text[start:])
+            break
+    
+    return chunks
 
 
 def count_tokens_with_tiktoken(text: str, model: str = "gemini-2.5-pro-preview-03-25") -> int:

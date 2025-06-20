@@ -1,0 +1,25 @@
+# Claude Proxy Configuration
+# This file configures how llm_call handles max/opus models
+
+claude_proxy:
+  # Execution mode: "local" or "proxy"
+  # - local: Execute Claude CLI directly on the host
+  # - proxy: Route through Docker proxy server
+  execution_mode: local
+  
+  # Local execution settings (used when execution_mode = "local")
+  local_cli_path: /home/graham/.nvm/versions/node/v22.15.0/bin/claude
+  workspace_dir: /home/graham/.claude_workspace
+  
+  # Proxy server settings (used when execution_mode = "proxy")
+  host: localhost
+  port: 3010
+  proxy_url: http://localhost:3010/v1/chat/completions
+  
+  # Default model label
+  default_model_label: max/opus
+
+# You can override with environment variables:
+# CLAUDE_PROXY_EXECUTION_MODE=proxy
+# CLAUDE_PROXY_LOCAL_CLI_PATH=/path/to/claude
+# CLAUDE_PROXY_PROXY_URL=http://claude-proxy:3010/v1/chat/completions

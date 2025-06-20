@@ -12,7 +12,7 @@ services:
       - PYTHONPATH=/app
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       # Service URLs
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://host.docker.internal:6379
       - CLAUDE_PROXY_URL=http://claude-proxy:3010
       # Feature flags
       - ENABLE_RL_ROUTING=${ENABLE_RL_ROUTING:-true}
@@ -24,20 +24,27 @@ services:
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
       - BRAVE_API_KEY=${BRAVE_API_KEY:-}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API:-}
+      # Vertex AI configuration
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/vertex_ai_service_account.json
+      # Ollama configuration
+      - OLLAMA_API_BASE=http://llm-call-ollama:11434
     volumes:
       # Application data
       - ./config:/app/config:ro
       - api-logs:/app/logs
       - api-cache:/app/cache
+      - ./.env:/app/.env:ro
+      - ./vertex_ai_service_account.json:/app/vertex_ai_service_account.json:ro
       # For development hot reload (uncomment if needed)
       # - ./src:/app/src
     depends_on:
-      redis:
-        condition: service_healthy
       claude-proxy:
         condition: service_healthy
     networks:
       - llm-call-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 30s
@@ -74,10 +81,12 @@ services:
     ports:
       - "3010:3010"
     volumes:
-      # Mount Claude credentials directory for claude user (read-only)
-      - ~/.claude:/home/claude/.claude:ro
-      # Persist workspace between restarts
-      - claude-workspace:/app/claude_poc_workspace
+      # Mount only credentials as read-only
+      - ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro
+      - ~/.claude/settings.json:/home/claude/.claude/settings.json:ro
+      # Create writable directories for Claude
+      - claude-projects:/home/claude/.claude/projects
+      - claude-workspace:/home/claude/.claude_workspace
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
@@ -103,6 +112,8 @@ services:
       - CHOWN
       - SETUID
       - SETGID
+    tmpfs:
+      - /home/claude/.claude_workspace
     deploy:
       resources:
         limits:
@@ -112,42 +123,11 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  # Redis for caching and state
-  redis:
-    image: redis:7-alpine
-    container_name: llm-call-redis
-    expose:
-      - "6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - llm-call-network
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-    restart: unless-stopped
-    # Security settings
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - SETUID
-      - SETGID
-    read_only: true
-    tmpfs:
-      - /tmp
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 768M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
+  # Use external Redis container
+  # Comment out the redis service since we're using an existing one
+  # redis:
+  #   external_name: redis
+  #   external: true
 
   # Optional: Ollama for local LLM inference (use --profile gpu)
   ollama:
@@ -179,11 +159,9 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - REDIS_HOSTS=local:redis:6379
+      - REDIS_HOSTS=local:172.17.0.1:6379
     networks:
       - llm-call-network
-    depends_on:
-      - redis
 
 networks:
   llm-call-network:
@@ -195,7 +173,7 @@ volumes:
     driver: local
   api-cache:
     driver: local
-  redis-data:
+  claude-projects:
     driver: local
   claude-workspace:
     driver: local

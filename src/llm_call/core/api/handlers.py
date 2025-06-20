@@ -57,15 +57,40 @@ async def chat_completions_endpoint(request: Request):
     model_requested_by_client = data.get("model", settings.claude_proxy.default_model_label)
     mcp_config = data.get("mcp_config")  # Extract MCP configuration
     
+    # Helper function to extract content from messages
+    def extract_content(msg_content):
+        """Extract text content from string or multimodal message."""
+        if isinstance(msg_content, str):
+            return msg_content
+        elif isinstance(msg_content, list):
+            # Handle multimodal content
+            parts = []
+            for item in msg_content:
+                if isinstance(item, dict):
+                    if item.get("type") == "text":
+                        parts.append(item.get("text", ""))
+                    elif item.get("type") == "image_url":
+                        url = item.get("image_url", {}).get("url", "")
+                        if url.startswith("/") or url.startswith("./"):
+                            # Local file path - Claude CLI can handle this
+                            parts.append(url)
+                        elif url.startswith("http"):
+                            parts.append(url)
+                        elif url.startswith("data:"):
+                            logger.warning("Base64 image data not supported for Claude CLI")
+                            parts.append("[Base64 image not supported]")
+            return " ".join(parts)
+        return str(msg_content)
+    
     # Extract user and system messages
     user_message_content = ""
     system_message_content = "You are a helpful assistant."  # Default from POC
     
     for msg in messages:
         if msg.get("role") == "user":
-            user_message_content = msg.get("content", "")
+            user_message_content = extract_content(msg.get("content", ""))
         elif msg.get("role") == "system":
-            system_message_content = msg.get("content", system_message_content)
+            system_message_content = extract_content(msg.get("content", system_message_content))
     
     if not user_message_content:
         logger.warning("[API Handler] No user message found")

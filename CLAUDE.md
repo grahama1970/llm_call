@@ -2,6 +2,17 @@
 
 > **Inherits standards from global and workspace CLAUDE.md files with overrides below.**
 
+## CURRENT TASKS PLAN
+
+**Active Task:** Task Polling Verification POC
+- **Task File:** `src/llm_call/usage/docs/tasks/006b_task_polling_verification.md`
+- **Status:** Implementing slash commands for sequential task execution
+- **Goals:**
+  - Prove `/claude-verify` can launch background verification
+  - Prove `/claude-poll` can wait for completion without hallucination
+  - Test inline code vs file references in slash commands
+  - Create clear, parseable logs for agent/human/model review
+
 ## Project Context
 **Purpose:** Universal LLM interface with validation and routing  
 **Type:** Processing Spoke  
@@ -37,6 +48,7 @@ DEFAULT_PROVIDER=claude
 - **Response Validation:** 16 built-in validators for quality assurance
 - **RL Optimization:** Provider selection based on performance metrics
 - **Conversation Persistence:** Maintains context across provider switches
+
 
 ---
 

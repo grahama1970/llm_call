@@ -42,12 +42,16 @@ if [ -n "$OPENAI_API_KEY" ]; then echo "✅ OpenAI API key configured"; else ech
 if [ -n "$GOOGLE_API_KEY" ]; then echo "✅ Google API key configured"; else echo "⚠️  No Google API key"; fi
 if [ -n "$ANTHROPIC_API_KEY" ]; then echo "✅ Anthropic API key configured"; else echo "⚠️  No Anthropic API key"; fi
 
-# Wait for dependencies
+# Parse REDIS_URL and set environment variables for litellm
 if [[ "$REDIS_URL" == *"redis"* ]]; then
     # Extract host and port from REDIS_URL
-    REDIS_HOST=$(echo $REDIS_URL | sed -E 's|.*://([^:]+):.*|\1|')
-    REDIS_PORT=$(echo $REDIS_URL | sed -E 's|.*:([0-9]+).*|\1|')
-    wait_for_service "$REDIS_HOST" "$REDIS_PORT" "Redis"
+    # Handle redis://host:port/db format
+    REDIS_HOST=$(echo $REDIS_URL | sed -E 's|redis://([^:/]+)(:[0-9]+)?(/.*)?|\1|')
+    REDIS_PORT=$(echo $REDIS_URL | sed -E 's|redis://[^:]+:([0-9]+)(/.*)?|\1|' | grep -E '^[0-9]+$' || echo "6379")
+    export REDIS_HOST=$REDIS_HOST
+    export REDIS_PORT=$REDIS_PORT
+    echo "Redis configuration: REDIS_HOST=$REDIS_HOST, REDIS_PORT=$REDIS_PORT"
+    echo "Note: Redis connection will be attempted but is not required (fallback to in-memory cache)"
 fi
 
 if [[ "$CLAUDE_PROXY_URL" == *"claude-proxy"* ]]; then
@@ -64,8 +68,9 @@ mkdir -p /app/logs /app/cache
 if [ $# -eq 0 ]; then
     # Default: run the API server
     echo "Starting API server on port 8001..."
-    exec python /app/src/llm_call/core/api/main.py
+    # Use env to ensure all environment variables are passed to the child process
+    exec env REDIS_HOST="$REDIS_HOST" REDIS_PORT="$REDIS_PORT" python -m uvicorn llm_call.api_server:app --host 0.0.0.0 --port 8001
 else
     # Run whatever command was passed
-    exec "$@"
+    exec env REDIS_HOST="$REDIS_HOST" REDIS_PORT="$REDIS_PORT" "$@"
 fi

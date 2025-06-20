@@ -180,7 +180,7 @@ def convert_image_to_base64(image_path_str: str) -> Optional[str]: # Return Opti
                     logger.info(f"Determined MIME type with PIL: {mime_type} for '{image_path}'")
             except Exception as pil_e:
                 logger.error(f"PIL could not open or identify image type for '{image_path}': {pil_e}")
-                return None
+                raise
         
         with image_path.open("rb") as image_file:
             encoded_bytes = base64.b64encode(image_file.read())
@@ -191,7 +191,7 @@ def convert_image_to_base64(image_path_str: str) -> Optional[str]: # Return Opti
         return data_uri
     except Exception as e:
         logger.exception(f"Failed to convert image '{image_path}' to Base64: {e}")
-        return None
+        raise
 
 def decode_base64_image(base64_image_str: str, image_directory_str: str, max_size_kb: int) -> Optional[str]:
     """
@@ -286,10 +286,10 @@ def process_image_input(image_input_url_or_path: str, image_cache_and_output_dir
                 return None
         except FileNotFoundError:
             logger.error(f"Local image file not found: {image_input_url_or_path}")
-            return None
+            raise
         except Exception as e:
             logger.exception(f"Unexpected error processing local image '{image_input_url_or_path}': {e}")
-            return None
+            raise
 
 
 def format_image_for_api(image_data: Dict[str, Any], api_type: str = "openai") -> Dict[str, Any]:

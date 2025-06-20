@@ -20,6 +20,7 @@ setup_logging()
 # Load global configuration
 config = load_configuration()
 settings = config  # Alias for compatibility
+get_config = config  # Function-like access
 
 __all__ = [
     "ValidationResult",
@@ -30,5 +31,6 @@ __all__ = [
     "validator",
     "config",
     "settings",
+    "get_config",
     "make_llm_request",
 ]

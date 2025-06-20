@@ -85,12 +85,28 @@ def load_config_file(path: Path) -> Dict[str, Any]:
     """Load configuration from JSON or YAML file."""
     if path.suffix == '.json':
         with open(path) as f:
-            return json.load(f)
+            config = json.load(f)
     elif path.suffix in ['.yaml', '.yml']:
         with open(path) as f:
-            return yaml.safe_load(f)
+            config = yaml.safe_load(f)
     else:
         raise ValueError(f"Unsupported config format: {path.suffix}")
+    
+    # Validate required fields
+    if 'model' not in config and 'messages' in config:
+        # If messages is provided but model is not, it's incomplete
+        raise ValueError("Config file must include 'model' when 'messages' is specified")
+    
+    # Validate messages format if present
+    if 'messages' in config:
+        if not isinstance(config['messages'], list) or len(config['messages']) == 0:
+            raise ValueError("'messages' must be a non-empty list")
+        
+        for msg in config['messages']:
+            if not isinstance(msg, dict) or 'role' not in msg or 'content' not in msg:
+                raise ValueError("Each message must have 'role' and 'content' fields")
+    
+    return config
 
 
 def build_llm_config(

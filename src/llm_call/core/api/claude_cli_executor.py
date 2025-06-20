@@ -102,7 +102,7 @@ def execute_claude_cli(
         "--system-prompt", system_prompt_content,
         "-p", prompt,
         "--output-format", "stream-json",
-        "--verbose"  # Added from POC based on previous CLI error
+        "--verbose"  # Required for stream-json output
     ]
     
     # Add model flag if specified

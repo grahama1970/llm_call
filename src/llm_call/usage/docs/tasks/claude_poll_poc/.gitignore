@@ -1,0 +1,25 @@
+# Claude Poll POC .gitignore
+
+# Generated scripts directory (current run)
+generated_scripts/
+
+# Archived script directories
+generated_scripts_archive_*/
+
+# Current execution log
+task_execution.log
+
+# Archived logs
+task_execution_archive_*.log
+
+# Generated output files
+add_results.txt
+verification_status.json
+final_answer.txt
+execution_summary.txt
+gemini_validation_response.md
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

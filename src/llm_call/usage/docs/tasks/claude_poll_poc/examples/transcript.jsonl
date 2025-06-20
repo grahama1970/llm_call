@@ -1,0 +1,48 @@
+"object"{
+    "parentUuid": null,
+    "isSidechain": false,
+    "userType": "external",
+    "cwd": "/home/graham/workspace/experiments/claude-monitor",
+    "sessionId": "beaeaed6-7ceb-4539-9697-5cd4dd3e54ed",
+    "version": "1.0.29",
+    "type": "user",
+    "message": {
+        "role": "user",
+        "content": "what is the capital of france"
+    },
+    "uuid": "79c403db-fab7-4120-8ec4-b4e9e556f957",
+    "timestamp": "2025-06-20T11:50:50.507Z"
+}
+"object"{
+    "parentUuid": "79c403db-fab7-4120-8ec4-b4e9e556f957",
+    "isSidechain": false,
+    "userType": "external",
+    "cwd": "/home/graham/workspace/experiments/claude-monitor",
+    "sessionId": "beaeaed6-7ceb-4539-9697-5cd4dd3e54ed",
+    "version": "1.0.29",
+    "message": {
+        "id": "msg_01A1pffim5LJv8aDJLiX2xE9",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-opus-4-20250514",
+        "content": [
+            {
+                "type": "text",
+                "text": "Paris"
+            }
+        ],
+        "stop_reason": null,
+        "stop_sequence": null,
+        "usage": {
+            "input_tokens": 3,
+            "cache_creation_input_tokens": 22564,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1,
+            "service_tier": "standard"
+        }
+    },
+    "requestId": "req_011CQKRXZeJkEJKu7x4CwVdc",
+    "type": "assistant",
+    "uuid": "5e2a239b-383f-4c12-b4cd-679715eaf432",
+    "timestamp": "2025-06-20T11:50:54.169Z"
+}

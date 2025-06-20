@@ -70,7 +70,7 @@ def load_yaml_config(file_path: Path) -> Dict[str, Any]:
             return yaml.safe_load(f) or {}
     except Exception as e:
         logger.error(f"Failed to load YAML config from {file_path}: {e}")
-        return {}
+        raise
 
 
 def load_json_config(file_path: Path) -> Dict[str, Any]:
@@ -80,7 +80,7 @@ def load_json_config(file_path: Path) -> Dict[str, Any]:
             return json.load(f)
     except Exception as e:
         logger.error(f"Failed to load JSON config from {file_path}: {e}")
-        return {}
+        raise
 
 
 def merge_configs(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
@@ -127,11 +127,11 @@ def load_configuration(
     """
     # Load .env file
     if env_file:
-        load_dotenv(env_file)
+        load_dotenv(env_file, override=True)
         logger.info(f"Loaded environment from {env_file}")
     else:
         # Try to find .env file
-        if load_dotenv():
+        if load_dotenv(override=True):
             logger.info("Loaded .env file")
     
     # Start with empty config
@@ -160,6 +160,10 @@ def load_configuration(
     env_overrides = {}
     
     # Claude proxy settings from env
+    if os.getenv("CLAUDE_PROXY_EXECUTION_MODE"):
+        env_overrides.setdefault("claude_proxy", {})["execution_mode"] = os.getenv("CLAUDE_PROXY_EXECUTION_MODE")
+    if os.getenv("CLAUDE_PROXY_LOCAL_CLI_PATH"):
+        env_overrides.setdefault("claude_proxy", {})["local_cli_path"] = os.getenv("CLAUDE_PROXY_LOCAL_CLI_PATH")
     if os.getenv("CLAUDE_CLI_PATH"):
         env_overrides.setdefault("claude_proxy", {})["cli_path"] = os.getenv("CLAUDE_CLI_PATH")
     if os.getenv("CLAUDE_PROXY_PORT"):
