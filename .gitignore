@@ -17,7 +17,8 @@ uploads
 node_modules
 dist
 coverage.xml
-verification-app
+verification-app/
+verification-app/node_modules/
 
 # Sensitive credentials and service accounts
 vertex_ai_service_account.json
